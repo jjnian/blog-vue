@@ -314,9 +314,12 @@ onUnmounted(() => {
     </header>
 
     <!-- Main Content -->
-    <main id="content" class="max-w-7xl mx-auto px-4 md:px-8 py-12 md:py-24 grid grid-cols-1 lg:grid-cols-4 gap-8 md:gap-16">
+    <main id="content" :class="[
+      'mx-auto py-12 md:py-24',
+      route.path === '/wishes' ? 'max-w-[1400px] px-4 md:px-8' : 'max-w-7xl px-4 md:px-8 grid grid-cols-1 lg:grid-cols-4 gap-8 md:gap-16'
+    ]">
       <!-- Router View -->
-      <div class="lg:col-span-3">
+      <div :class="route.path === '/wishes' ? '' : 'lg:col-span-3'">
         <router-view v-slot="{ Component }">
           <transition name="fade" mode="out-in">
             <component :is="Component" />
@@ -325,7 +328,7 @@ onUnmounted(() => {
       </div>
 
       <!-- Sidebar -->
-      <aside class="space-y-16">
+      <aside v-if="route.path !== '/wishes'" class="space-y-16">
         <!-- Profile Card -->
         <div class="glass rounded-[3rem] p-12 text-center hover:shadow-2xl hover:shadow-[#49b1f5]/20 transition-all duration-700 group border border-white/60 hover:border-[#49b1f5]/30">
           <div class="relative inline-block mb-10 animate-float">
