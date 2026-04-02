@@ -37,6 +37,16 @@ let magicCircle: THREE.Group;
 const lanternGroups: THREE.Group[] = [];
 const branchEndPoints: THREE.Vector3[] = [];
 
+// Interactions and Decorations
+let raycaster: THREE.Raycaster;
+let mouse: THREE.Vector2;
+let hoveredLantern: THREE.Group | null = null;
+let targetCameraPos: THREE.Vector3 | null = null;
+let originalCameraPos: THREE.Vector3 = new THREE.Vector3(0, 35, 80);
+const decorationGroups: THREE.Object3D[] = [];
+const ribbons: THREE.Mesh[] = [];
+let isZoomedIn = false;
+
 // Petal animation data
 let petalVelocities: Float32Array;
 let petalRotations: Float32Array;
@@ -80,6 +90,14 @@ const initScene = () => {
   controls.autoRotate = true;
   controls.autoRotateSpeed = 0.3;
   controls.update();
+
+  raycaster = new THREE.Raycaster();
+  mouse = new THREE.Vector2();
+
+  if (canvasContainer.value) {
+    canvasContainer.value.addEventListener('pointermove', onPointerMove);
+    canvasContainer.value.addEventListener('click', onClick);
+  }
 
   // Resize
   resizeObserver = new ResizeObserver(entries => {
@@ -401,6 +419,11 @@ const createTree = () => {
       branchEndPoints.push(endPt.clone());
     }
 
+    // Add glowing charms and ribbons
+    if (depth > 2 && Math.random() > 0.4) {
+      addDecoration(parent, endPt.clone());
+    }
+
     if (depth < maxDepth) {
       const numBranches = depth === 0 ? 5 : depth === 1 ? 4 : (Math.random() > 0.3 ? 3 : 2);
       for (let i = 0; i < numBranches; i++) {
@@ -471,6 +494,75 @@ const createTree = () => {
 
   // Place initial lanterns
   placeInitialLanterns();
+};
+
+// ========== DECORATIONS ==========
+const addDecoration = (parent: THREE.Object3D, position: THREE.Vector3) => {
+  const type = Math.random();
+  if (type < 0.4) {
+    // Ribbon
+    const ribbonGeo = new THREE.PlaneGeometry(0.5, 3 + Math.random() * 3, 2, 8);
+    const ribbonMat = new THREE.MeshBasicMaterial({
+      color: Math.random() > 0.5 ? 0xff5566 : 0x49b1f5,
+      side: THREE.DoubleSide,
+      transparent: true,
+      opacity: 0.85,
+    });
+    const ribbon = new THREE.Mesh(ribbonGeo, ribbonMat);
+    ribbon.position.copy(position);
+    ribbon.position.y -= 1.5;
+    ribbon.userData = { phase: Math.random() * Math.PI * 2, originalY: ribbon.position.y };
+    parent.add(ribbon);
+    ribbons.push(ribbon);
+  } else if (type < 0.7) {
+    // Star Charm
+    const starGroup = new THREE.Group();
+    starGroup.position.copy(position);
+    starGroup.position.y -= 0.5;
+
+    const starGeo = new THREE.OctahedronGeometry(0.6, 0);
+    const starMat = new THREE.MeshStandardMaterial({
+      color: 0xffea00,
+      emissive: 0xccaa00,
+      metalness: 1,
+      roughness: 0.1,
+    });
+    const star = new THREE.Mesh(starGeo, starMat);
+    starGroup.add(star);
+    
+    // Add glowing string
+    const stringGeo = new THREE.CylinderGeometry(0.02, 0.02, 1);
+    const stringMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.3 });
+    const str = new THREE.Mesh(stringGeo, stringMat);
+    str.position.y = 0.5;
+    starGroup.add(str);
+
+    starGroup.userData = { isCharm: true, speed: Math.random() * 0.05 + 0.02, originalY: starGroup.position.y };
+    parent.add(starGroup);
+    decorationGroups.push(starGroup);
+  } else {
+    // Floating glowing crystal
+    const crystalGeo = new THREE.IcosahedronGeometry(0.4, 0);
+    const crystalMat = new THREE.MeshPhysicalMaterial({
+      color: 0x88ffff,
+      emissive: 0x004444,
+      transmission: 0.9,
+      opacity: 1,
+      roughness: 0,
+      ior: 1.5,
+      thickness: 0.5
+    });
+    const crystal = new THREE.Mesh(crystalGeo, crystalMat);
+    crystal.position.copy(position);
+    crystal.position.y -= 1;
+    
+    const light = new THREE.PointLight(0x88ffff, 1, 8);
+    crystal.add(light);
+    
+    crystal.userData = { phase: Math.random() * Math.PI * 2, originalY: crystal.position.y };
+    parent.add(crystal);
+    decorationGroups.push(crystal);
+  }
 };
 
 // ========== LANTERNS (WISHES) ==========
@@ -848,7 +940,113 @@ const animate = () => {
     groundMirror.geometry.computeVertexNormals();
   }
 
+  // Decoration animations
+  ribbons.forEach((ribbon) => {
+    const phase = ribbon.userData.phase;
+    // Apply a simple wind effect by modifying vertices, or just rotate
+    ribbon.rotation.z = Math.sin(time * 2 + phase) * 0.1;
+    ribbon.rotation.x = Math.sin(time * 1.5 + phase) * 0.1;
+  });
+
+  decorationGroups.forEach((group) => {
+    if (group.userData.isCharm) {
+      group.rotation.y += group.userData.speed;
+    } else {
+      const phase = group.userData.phase || 0;
+      group.position.y = group.userData.originalY + Math.sin(time * 2 + phase) * 0.2;
+      group.rotation.y += 0.02;
+    }
+  });
+
+  // Camera Zoom Logic
+  if (targetCameraPos) {
+    camera.position.lerp(targetCameraPos, 0.05);
+    if (controls.target.distanceTo(hoveredLantern ? hoveredLantern.position : new THREE.Vector3(0,20,0)) > 0.1) {
+       controls.target.lerp(hoveredLantern ? hoveredLantern.position : new THREE.Vector3(0,20,0), 0.05);
+    }
+  } else if (isZoomedIn === false && camera.position.distanceTo(originalCameraPos) > 0.5) {
+    camera.position.lerp(originalCameraPos, 0.05);
+    controls.target.lerp(new THREE.Vector3(0, 20, 0), 0.05);
+  } else if (isZoomedIn === false) {
+    controls.autoRotate = true;
+  }
+
   renderer.render(scene, camera);
+};
+
+// ========== INTERACTION HANDLERS ==========
+const onPointerMove = (event: PointerEvent) => {
+  if (!canvasContainer.value || !raycaster) return;
+  const rect = canvasContainer.value.getBoundingClientRect();
+  mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+  mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+  raycaster.setFromCamera(mouse, camera);
+  
+  const testObjects = lanternGroups.map(g => g.children[0]); // outer glow or body
+  const intersects = raycaster.intersectObjects(testObjects);
+  
+  if (intersects.length > 0) {
+    document.body.style.cursor = 'pointer';
+    const intersectedMesh = intersects[0].object as THREE.Mesh;
+    const parentGroup = intersectedMesh.parent as THREE.Group;
+    
+    if (hoveredLantern !== parentGroup) {
+      if (hoveredLantern) {
+        const oldLight = hoveredLantern.children.find(c => c instanceof THREE.PointLight) as THREE.PointLight;
+        if (oldLight) oldLight.intensity = 2; 
+        hoveredLantern.scale.setScalar(1);
+      }
+      hoveredLantern = parentGroup;
+      const newLight = hoveredLantern.children.find(c => c instanceof THREE.PointLight) as THREE.PointLight;
+      if (newLight) newLight.intensity = 6;
+      hoveredLantern.scale.setScalar(1.2);
+    }
+  } else {
+    document.body.style.cursor = 'default';
+    if (hoveredLantern && !isZoomedIn) {
+      const oldLight = hoveredLantern.children.find(c => c instanceof THREE.PointLight) as THREE.PointLight;
+      if (oldLight) oldLight.intensity = 2;
+      hoveredLantern.scale.setScalar(1);
+      hoveredLantern = null;
+    }
+  }
+};
+
+const onClick = () => {
+  if (hoveredLantern) {
+    isZoomedIn = true;
+    controls.autoRotate = false;
+    
+    const text = hoveredLantern.userData.text;
+    activeWish.value = text;
+    
+    const lanternPos = new THREE.Vector3();
+    hoveredLantern.getWorldPosition(lanternPos);
+    
+    targetCameraPos = lanternPos.clone().add(new THREE.Vector3(15, 5, 20)); // pull back a bit
+    
+    createWishBurst(lanternPos);
+    
+    setTimeout(() => {
+      if (activeWish.value === text) {
+        activeWish.value = '';
+        isZoomedIn = false;
+        targetCameraPos = null;
+        if (hoveredLantern) hoveredLantern.scale.setScalar(1);
+        hoveredLantern = null;
+      }
+    }, 6000);
+  } else {
+    // Clicked empty space
+    if (isZoomedIn) {
+       isZoomedIn = false;
+       targetCameraPos = null;
+       activeWish.value = '';
+       if (hoveredLantern) hoveredLantern.scale.setScalar(1);
+       hoveredLantern = null;
+    }
+  }
 };
 
 // ========== WISH SUBMISSION ==========
@@ -966,6 +1164,10 @@ onMounted(() => {
 onUnmounted(() => {
   if (animationId) cancelAnimationFrame(animationId);
   if (resizeObserver) resizeObserver.disconnect();
+  if (canvasContainer.value) {
+    canvasContainer.value.removeEventListener('pointermove', onPointerMove);
+    canvasContainer.value.removeEventListener('click', onClick);
+  }
   if (controls) controls.dispose();
   if (renderer) {
     renderer.dispose();
