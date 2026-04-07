@@ -25,7 +25,8 @@ import {
   Eye,
   MessageCircle,
   ArrowRight,
-  TreeDeciduous
+  TreeDeciduous,
+  MessageSquare
 } from 'lucide-vue-next';
 
 const isMenuOpen = ref(false);
@@ -82,6 +83,7 @@ const navItems = [
     ] 
   },
   { name: '许愿树', icon: TreeDeciduous, link: '/wishes' },
+  { name: '留言墙', icon: MessageSquare, link: '/messagewall' },
   { name: '工具', icon: Wrench, link: '/tools' },
   { name: '友链', icon: LinkIcon, link: '/link' },
   { name: '关于', icon: User, link: '/about' }
@@ -178,7 +180,6 @@ onUnmounted(() => {
       <div class="hidden lg:flex items-center space-x-6">
         <div v-for="item in navItems" :key="item.name" class="relative group">
           <router-link :to="item.link" class="flex items-center space-x-2 hover:text-[#49b1f5] transition-all duration-500 py-2 relative overflow-hidden font-medium text-sm tracking-widest uppercase">
-            <component :is="item.icon" :size="16" stroke-width="1.5" />
             <span>{{ item.name }}</span>
             <ChevronDown v-if="item.subItems" :size="14" class="group-hover:rotate-180 transition-transform duration-500" />
             <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-[#49b1f5] group-hover:w-full transition-all duration-500 rounded-full"></span>
@@ -192,7 +193,6 @@ onUnmounted(() => {
               :to="sub.link"
               class="flex items-center space-x-3 px-5 py-3 text-sm text-[#2c3e50] hover:bg-[#49b1f5] hover:text-white transition-all duration-500 rounded-2xl"
             >
-              <component :is="sub.icon" :size="14" stroke-width="1.5" />
               <span>{{ sub.name }}</span>
             </router-link>
           </div>
@@ -262,12 +262,10 @@ onUnmounted(() => {
           <div class="flex-1 space-y-1">
             <div v-for="item in navItems" :key="item.name">
               <router-link :to="item.link" @click="isMenuOpen = false" class="flex items-center space-x-4 text-[#2c3e50] hover:text-[#49b1f5] transition-all duration-500 p-3 rounded-xl hover:bg-white/60">
-                <component :is="item.icon" :size="20" stroke-width="1.5" />
                 <span class="font-medium tracking-widest uppercase text-xs">{{ item.name }}</span>
               </router-link>
               <div v-if="item.subItems" class="ml-12 mt-0.5 space-y-1">
                 <router-link v-for="sub in item.subItems" :key="sub.name" :to="sub.link" @click="isMenuOpen = false" class="flex items-center space-x-3 text-[11px] text-gray-500 hover:text-[#49b1f5] transition-colors p-2">
-                  <component :is="sub.icon" :size="16" stroke-width="1.5" />
                   <span>{{ sub.name }}</span>
                 </router-link>
               </div>
@@ -316,10 +314,10 @@ onUnmounted(() => {
     <!-- Main Content -->
     <main id="content" :class="[
       'mx-auto py-12 md:py-24',
-      route.path === '/wishes' ? 'max-w-[1400px] px-4 md:px-8' : 'max-w-7xl px-4 md:px-8 grid grid-cols-1 lg:grid-cols-4 gap-8 md:gap-16'
+      route.path === '/wishes' || route.path === '/messagewall' ? 'max-w-[1400px] px-4 md:px-8' : 'max-w-7xl px-4 md:px-8 grid grid-cols-1 lg:grid-cols-4 gap-8 md:gap-16'
     ]">
       <!-- Router View -->
-      <div :class="route.path === '/wishes' ? '' : 'lg:col-span-3'">
+      <div :class="route.path === '/wishes' || route.path === '/messagewall' ? '' : 'lg:col-span-3'">
         <router-view v-slot="{ Component }">
           <transition name="fade" mode="out-in">
             <component :is="Component" />
@@ -328,7 +326,7 @@ onUnmounted(() => {
       </div>
 
       <!-- Sidebar -->
-      <aside v-if="route.path !== '/wishes'" class="space-y-16">
+      <aside v-if="route.path !== '/wishes' && route.path !== '/messagewall'" class="space-y-16">
         <!-- Profile Card -->
         <div class="glass rounded-[3rem] p-12 text-center hover:shadow-2xl hover:shadow-[#49b1f5]/20 transition-all duration-700 group border border-white/60 hover:border-[#49b1f5]/30">
           <div class="relative inline-block mb-10 animate-float">

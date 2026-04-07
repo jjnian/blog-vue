@@ -9,6 +9,7 @@ const routes = [
   { path: '/music', name: '音乐', component: () => import('../views/Music.vue') },
   { path: '/movies', name: '电影', component: () => import('../views/Movies.vue') },
   { path: '/wishes', name: '许愿树', component: () => import('../views/Wishes.vue') },
+  { path: '/messagewall', name: '留言墙', component: () => import('../views/NameWall.vue') },
   { path: '/tools', name: '工具', component: () => import('../views/Tools.vue') },
   { path: '/link', name: '友链', component: () => import('../views/Link.vue') },
   { path: '/about', name: '关于', component: () => import('../views/About.vue') },
