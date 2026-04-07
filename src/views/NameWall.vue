@@ -7,7 +7,6 @@ interface Danmu {
   text: string;
   avatar: string;
   top: string;
-  left?: string;
   duration: string;
   delay: string;
   fontSize: string;
@@ -16,6 +15,7 @@ interface Danmu {
   zIndex: number;
   animationClass: string;
   wobbleIntensity: number;
+  travelX: string;
   timingFunction: string;
 }
 
@@ -75,9 +75,6 @@ const animationClasses = [
   'danmu-float', 
   'danmu-zoom', 
   'danmu-swing',
-  'danmu-up',
-  'danmu-down',
-  'danmu-diagonal',
   'danmu-bounce',
   'danmu-spiral',
   'danmu-flip',
@@ -94,14 +91,9 @@ const createDanmu = (customText?: string) => {
   const animationClass = animationClasses[Math.floor(Math.random() * animationClasses.length)];
   const timingFunction = timingFunctions[Math.floor(Math.random() * timingFunctions.length)];
   
-  // Logic for starting positions based on animation type
+  // Always spawn from right side, then travel to left
   let top = `${Math.random() * 90 + 5}%`;
-  let left = 'auto';
-  
-  if (animationClass === 'danmu-up' || animationClass === 'danmu-down') {
-    left = `${Math.random() * 90 + 5}%`;
-    top = 'auto';
-  }
+  const travelX = `${Math.random() * 40 + 220}vw`;
   
   // Adjust duration based on type
   let durationBase = 12;
@@ -113,7 +105,6 @@ const createDanmu = (customText?: string) => {
   if (animationClass === 'danmu-flip') durationBase = 12;
   if (animationClass === 'danmu-pulse') durationBase = 16;
   if (animationClass === 'danmu-wavy') durationBase = 14;
-  if (animationClass.includes('danmu-up') || animationClass.includes('danmu-down')) durationBase = 10;
   
   const duration = `${Math.random() * 15 + durationBase}s`;
   const delay = `0s`;
@@ -126,15 +117,16 @@ const createDanmu = (customText?: string) => {
   
   const id = nextId.value++;
   danmuList.value.push({ 
-    id, text, avatar, top, left, duration, delay, 
+    id, text, avatar, top, duration, delay, 
     fontSize, opacity, glowColor, zIndex,
-    animationClass, wobbleIntensity, timingFunction
+    animationClass, wobbleIntensity, travelX, timingFunction
   });
   
   // Cleanup after animation
+  const cleanupDelay = Math.ceil(parseFloat(duration) * 1000) + 2500;
   setTimeout(() => {
     danmuList.value = danmuList.value.filter(d => d.id !== id);
-  }, 50000);
+  }, cleanupDelay);
 };
 
 const sendDanmu = () => {
@@ -175,7 +167,6 @@ onUnmounted(() => {
         :class="['danmu-item absolute flex items-center gap-3 px-4 py-2 bg-black/50 backdrop-blur-lg rounded-full text-white shadow-2xl whitespace-nowrap', danmu.animationClass]"
         :style="{
           top: danmu.top,
-          left: danmu.left,
           animationDuration: danmu.duration,
           animationDelay: danmu.delay,
           animationTimingFunction: danmu.timingFunction,
@@ -183,7 +174,8 @@ onUnmounted(() => {
           opacity: danmu.opacity,
           boxShadow: `0 0 20px ${danmu.glowColor}`,
           zIndex: danmu.zIndex,
-          '--wobble': `${danmu.wobbleIntensity}px`
+          '--wobble': `${danmu.wobbleIntensity}px`,
+          '--travel-x': danmu.travelX
         }"
       >
         <img :src="danmu.avatar" class="w-8 h-8 rounded-full border border-white/20 object-cover" alt="avatar" />

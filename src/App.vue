@@ -313,8 +313,14 @@ onUnmounted(() => {
 
     <!-- Main Content -->
     <main id="content" :class="[
-      'mx-auto py-12 md:py-24',
-      route.path === '/wishes' || route.path === '/messagewall' ? 'max-w-[1400px] px-4 md:px-8' : 'max-w-7xl px-4 md:px-8 grid grid-cols-1 lg:grid-cols-4 gap-8 md:gap-16'
+      route.path === '/messagewall'
+        ? 'w-full py-0'
+        : 'mx-auto py-12 md:py-24',
+      route.path === '/messagewall'
+        ? 'max-w-none px-0'
+        : (route.path === '/wishes'
+          ? 'max-w-[1400px] px-4 md:px-8'
+          : 'max-w-7xl px-4 md:px-8 grid grid-cols-1 lg:grid-cols-4 gap-8 md:gap-16')
     ]">
       <!-- Router View -->
       <div :class="route.path === '/wishes' || route.path === '/messagewall' ? '' : 'lg:col-span-3'">
