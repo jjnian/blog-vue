@@ -1,4 +1,4 @@
-<script setup lang="ts">
+﻿<script setup lang="ts">
 import { ref, onMounted, onUnmounted, nextTick, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import { 
@@ -26,7 +26,8 @@ import {
   MessageCircle,
   ArrowRight,
   TreeDeciduous,
-  MessageSquare
+  MessageSquare,
+  Users
 } from 'lucide-vue-next';
 
 const isMenuOpen = ref(false);
@@ -37,7 +38,7 @@ const scrollProgress = ref(0);
 
 // Typing effect state
 const typedText = ref('');
-const fullText = '做个一个干净的人';
+const fullText = '鍋氫釜涓€涓共鍑€鐨勪汉';
 let typingIndex = 0;
 
 const typeEffect = () => {
@@ -57,7 +58,7 @@ const typeEffect = () => {
 // Click effect state
 const clickEffects = ref<{ id: number; x: number; y: number; text: string }[]>([]);
 let clickId = 0;
-const clickTexts = ['诗意', '远方', '热爱', '自由', '纯粹', '温柔', '明亮', '星辰', '大海', '山川', '岁月', '静好'];
+const clickTexts = ['璇楁剰', '杩滄柟', '鐑埍', '鑷敱', '绾补', '娓╂煍', '鏄庝寒', '鏄熻景', '澶ф捣', '灞卞窛', '宀佹湀', '闈欏ソ'];
 
 const handleGlobalClick = (e: MouseEvent) => {
   const id = clickId++;
@@ -69,34 +70,35 @@ const handleGlobalClick = (e: MouseEvent) => {
 };
 
 const navItems = [
-  { name: '主页', icon: Home, link: '/' },
-  { name: '时间线', icon: Clock, link: '/archives' },
-  { name: '标签', icon: Tag, link: '/tags' },
-  { name: '分类', icon: LayoutGrid, link: '/categories' },
+  { name: '涓婚〉', icon: Home, link: '/' },
+  { name: '鏃堕棿绾?, icon: Clock, link: '/archives' },
+  { name: '鏍囩', icon: Tag, link: '/tags' },
+  { name: '鍒嗙被', icon: LayoutGrid, link: '/categories' },
   { 
-    name: '休闲', 
+    name: '浼戦棽', 
     icon: Music, 
     link: '#',
     subItems: [
-      { name: '音乐', icon: Music, link: '/music' },
-      { name: '电影', icon: Film, link: '/movies' }
+      { name: '闊充箰', icon: Music, link: '/music' },
+      { name: '鐢靛奖', icon: Film, link: '/movies' }
     ] 
   },
-  { name: '许愿树', icon: TreeDeciduous, link: '/wishes' },
-  { name: '留言墙', icon: MessageSquare, link: '/messagewall' },
-  { name: '工具', icon: Wrench, link: '/tools' },
-  { name: '友链', icon: LinkIcon, link: '/link' },
-  { name: '关于', icon: User, link: '/about' }
+  { name: '璁告効鏍?, icon: TreeDeciduous, link: '/wishes' },
+  
+  { name: 'Friends', icon: Users, link: '/friends' },
+  { name: '宸ュ叿', icon: Wrench, link: '/tools' },
+  { name: '鍙嬮摼', icon: LinkIcon, link: '/link' },
+  { name: '鍏充簬', icon: User, link: '/about' }
 ];
 
 const posts = [
-  { title: 'MySQL 8.0 深度安装指南', date: '2024-10-13', link: '/2024/10/13/MySQL8.0安装/', excerpt: '探索 MySQL 8.0 的安装艺术，从 environment 配置到性能优化，为你的数据之旅奠定坚实基础。', views: 1240, comments: 12, category: '数据库', tags: ['MySQL', 'DBA'] },
-  { title: 'Spring AOP：切面编程的魅力', date: '2023-07-16', link: '/2023/07/16/spring-aop/', excerpt: '深入理解 Spring AOP 的核心哲学，让你的代码在解耦与复用之间找到完美的平衡。', views: 856, comments: 8, category: '后端', tags: ['Spring', 'Java'] },
-  { title: 'Java 虚拟机：内存与性能的交响乐', date: '2023-06-24', link: '/2023/06/24/jvm/', excerpt: '揭开 JVM 的神秘面纱，探索内存模型与垃圾回收的律动，让你的 Java 应用起舞。', views: 2105, comments: 24, category: '后端', tags: ['JVM', 'Java'] },
-  { title: 'PostgreSQL：关系型数据库的优雅实践', date: '2023-06-23', link: '/2023/06/23/pgsql/', excerpt: '在 PostgreSQL 的世界里，每一条查询都是一次优雅的对话，每一张表都是一个结构化的故事。', views: 942, comments: 15, category: '数据库', tags: ['PostgreSQL', 'SQL'] },
-  { title: 'Dockerfile：构建容器化世界的蓝图', date: '2023-06-17', link: '/2023/06/17/dockerfile/', excerpt: '学习编写高效的 Dockerfile，将你的应用打包成轻量级的艺术品，在云端自由飞翔。', views: 1560, comments: 19, category: 'DevOps', tags: ['Docker', 'Cloud'] },
-  { title: '纪锐鑫：在代码与生活之间寻找诗意', date: '2023-06-14', link: '/2023/06/14/first/', excerpt: '这是我的第一篇随笔，记录那些在屏幕前闪烁的灵感，以及在生活里流淌的温暖。', views: 3200, comments: 45, category: '随笔', tags: ['生活', '感悟'] },
-  { title: 'Hello Hexo：开启一段诗意的博客之旅', date: '2023-06-13', link: '/2023/06/13/hello-world/', excerpt: '欢迎来到我的数字花园。在这里，我将用文字播种，用代码浇灌，静待灵感的绽放。', views: 1100, comments: 5, category: '随笔', tags: ['Hexo', 'Blog'] }
+  { title: 'MySQL 8.0 娣卞害瀹夎鎸囧崡', date: '2024-10-13', link: '/2024/10/13/MySQL8.0瀹夎/', excerpt: '鎺㈢储 MySQL 8.0 鐨勫畨瑁呰壓鏈紝浠?environment 閰嶇疆鍒版€ц兘浼樺寲锛屼负浣犵殑鏁版嵁涔嬫梾濂犲畾鍧氬疄鍩虹銆?, views: 1240, comments: 12, category: '鏁版嵁搴?, tags: ['MySQL', 'DBA'] },
+  { title: 'Spring AOP锛氬垏闈㈢紪绋嬬殑榄呭姏', date: '2023-07-16', link: '/2023/07/16/spring-aop/', excerpt: '娣卞叆鐞嗚В Spring AOP 鐨勬牳蹇冨摬瀛︼紝璁╀綘鐨勪唬鐮佸湪瑙ｈ€︿笌澶嶇敤涔嬮棿鎵惧埌瀹岀編鐨勫钩琛°€?, views: 856, comments: 8, category: '鍚庣', tags: ['Spring', 'Java'] },
+  { title: 'Java 铏氭嫙鏈猴細鍐呭瓨涓庢€ц兘鐨勪氦鍝嶄箰', date: '2023-06-24', link: '/2023/06/24/jvm/', excerpt: '鎻紑 JVM 鐨勭绉橀潰绾憋紝鎺㈢储鍐呭瓨妯″瀷涓庡瀮鍦惧洖鏀剁殑寰嬪姩锛岃浣犵殑 Java 搴旂敤璧疯垶銆?, views: 2105, comments: 24, category: '鍚庣', tags: ['JVM', 'Java'] },
+  { title: 'PostgreSQL锛氬叧绯诲瀷鏁版嵁搴撶殑浼橀泤瀹炶返', date: '2023-06-23', link: '/2023/06/23/pgsql/', excerpt: '鍦?PostgreSQL 鐨勪笘鐣岄噷锛屾瘡涓€鏉℃煡璇㈤兘鏄竴娆′紭闆呯殑瀵硅瘽锛屾瘡涓€寮犺〃閮芥槸涓€涓粨鏋勫寲鐨勬晠浜嬨€?, views: 942, comments: 15, category: '鏁版嵁搴?, tags: ['PostgreSQL', 'SQL'] },
+  { title: 'Dockerfile锛氭瀯寤哄鍣ㄥ寲涓栫晫鐨勮摑鍥?, date: '2023-06-17', link: '/2023/06/17/dockerfile/', excerpt: '瀛︿範缂栧啓楂樻晥鐨?Dockerfile锛屽皢浣犵殑搴旂敤鎵撳寘鎴愯交閲忕骇鐨勮壓鏈搧锛屽湪浜戠鑷敱椋炵繑銆?, views: 1560, comments: 19, category: 'DevOps', tags: ['Docker', 'Cloud'] },
+  { title: '绾攼閼細鍦ㄤ唬鐮佷笌鐢熸椿涔嬮棿瀵绘壘璇楁剰', date: '2023-06-14', link: '/2023/06/14/first/', excerpt: '杩欐槸鎴戠殑绗竴绡囬殢绗旓紝璁板綍閭ｄ簺鍦ㄥ睆骞曞墠闂儊鐨勭伒鎰燂紝浠ュ強鍦ㄧ敓娲婚噷娴佹穼鐨勬俯鏆栥€?, views: 3200, comments: 45, category: '闅忕瑪', tags: ['鐢熸椿', '鎰熸偀'] },
+  { title: 'Hello Hexo锛氬紑鍚竴娈佃瘲鎰忕殑鍗氬涔嬫梾', date: '2023-06-13', link: '/2023/06/13/hello-world/', excerpt: '娆㈣繋鏉ュ埌鎴戠殑鏁板瓧鑺卞洯銆傚湪杩欓噷锛屾垜灏嗙敤鏂囧瓧鎾锛岀敤浠ｇ爜娴囩亴锛岄潤寰呯伒鎰熺殑缁芥斁銆?, views: 1100, comments: 5, category: '闅忕瑪', tags: ['Hexo', 'Blog'] }
 ];
 
 const scrollToTop = () => {
@@ -173,7 +175,7 @@ onUnmounted(() => {
       ]"
     >
       <div class="text-2xl md:text-3xl font-serif font-bold tracking-widest cursor-pointer hover:scale-105 transition-transform duration-500">
-        纪念
+        绾康
       </div>
 
       <!-- Desktop Nav -->
@@ -215,14 +217,14 @@ onUnmounted(() => {
           <div class="p-10 border-b border-gray-100/50 flex items-center justify-between">
             <div class="flex items-center space-x-5 flex-1">
               <Search class="text-[#49b1f5]" :size="28" stroke-width="1.5" />
-              <input type="text" placeholder="探索你的灵感..." class="w-full outline-none text-2xl font-serif italic tracking-wide bg-transparent" autofocus />
+              <input type="text" placeholder="鎺㈢储浣犵殑鐏垫劅..." class="w-full outline-none text-2xl font-serif italic tracking-wide bg-transparent" autofocus />
             </div>
             <button @click="isSearchOpen = false" class="text-gray-400 hover:text-red-400 transition-all duration-300 hover:rotate-90">
               <X :size="32" stroke-width="1.5" />
             </button>
           </div>
           <div class="p-20 text-center text-gray-400 font-serif italic text-xl">
-            "在文字的海洋里，寻找那一抹诗意..."
+            "鍦ㄦ枃瀛楃殑娴锋磱閲岋紝瀵绘壘閭ｄ竴鎶硅瘲鎰?.."
           </div>
         </div>
       </div>
@@ -250,8 +252,8 @@ onUnmounted(() => {
                 v-zoom
               />
               <div>
-                <h2 class="text-lg font-serif font-bold text-[#2c3e50]">纪念</h2>
-                <p class="text-[10px] text-gray-500 font-light uppercase tracking-wider">做个一个干净的人</p>
+                <h2 class="text-lg font-serif font-bold text-[#2c3e50]">绾康</h2>
+                <p class="text-[10px] text-gray-500 font-light uppercase tracking-wider">鍋氫釜涓€涓共鍑€鐨勪汉</p>
               </div>
             </div>
             <button @click="isMenuOpen = false" class="text-[#2c3e50] hover:rotate-90 transition-transform duration-500 p-2">
@@ -281,7 +283,7 @@ onUnmounted(() => {
       <div class="absolute inset-0 bg-gradient-to-b from-black/50 via-black/20 to-transparent"></div>
       
       <div class="relative z-10 text-center text-white px-6">
-        <h1 v-if="route.path === '/'" class="text-5xl md:text-9xl font-serif font-bold mb-6 md:mb-10 animate-hero-title tracking-tighter drop-shadow-[0_0_30px_rgba(255,255,255,0.5)]">纪念</h1>
+        <h1 v-if="route.path === '/'" class="text-5xl md:text-9xl font-serif font-bold mb-6 md:mb-10 animate-hero-title tracking-tighter drop-shadow-[0_0_30px_rgba(255,255,255,0.5)]">绾康</h1>
         <h1 v-else class="text-4xl md:text-6xl font-serif font-bold mb-4 animate-hero-title tracking-widest drop-shadow-[0_0_20px_rgba(255,255,255,0.5)]">{{ route.name }}</h1>
         
         <div class="h-px w-20 md:w-32 bg-white/40 mx-auto mb-6 md:mb-10 animate-hero-subtitle"></div>
@@ -313,17 +315,17 @@ onUnmounted(() => {
 
     <!-- Main Content -->
     <main id="content" :class="[
-      route.path === '/messagewall'
+      route.path === '/messagewall' || route.path === '/friends'
         ? 'w-full py-0'
         : 'mx-auto py-12 md:py-24',
-      route.path === '/messagewall'
+      route.path === '/messagewall' || route.path === '/friends'
         ? 'max-w-none px-0'
         : (route.path === '/wishes'
           ? 'max-w-[1400px] px-4 md:px-8'
           : 'max-w-7xl px-4 md:px-8 grid grid-cols-1 lg:grid-cols-4 gap-8 md:gap-16')
     ]">
       <!-- Router View -->
-      <div :class="route.path === '/wishes' || route.path === '/messagewall' ? '' : 'lg:col-span-3'">
+      <div :class="route.path === '/wishes' || route.path === '/messagewall' || route.path === '/friends' ? '' : 'lg:col-span-3'">
         <router-view v-slot="{ Component }">
           <transition name="fade" mode="out-in">
             <component :is="Component" />
@@ -332,7 +334,7 @@ onUnmounted(() => {
       </div>
 
       <!-- Sidebar -->
-      <aside v-if="route.path !== '/wishes' && route.path !== '/messagewall'" class="space-y-16">
+      <aside v-if="route.path !== '/wishes' && route.path !== '/messagewall' && route.path !== '/friends'" class="space-y-16">
         <!-- Profile Card -->
         <div class="glass rounded-[3rem] p-12 text-center hover:shadow-2xl hover:shadow-[#49b1f5]/20 transition-all duration-700 group border border-white/60 hover:border-[#49b1f5]/30">
           <div class="relative inline-block mb-10 animate-float">
@@ -346,21 +348,21 @@ onUnmounted(() => {
             />
             <div class="absolute bottom-5 right-3 w-8 h-8 bg-green-400 border-4 border-white rounded-full z-20"></div>
           </div>
-          <h3 class="text-4xl font-serif font-bold mb-4">纪念</h3>
-          <p class="text-sm text-gray-400 mb-12 italic font-light tracking-[0.2em] uppercase">"做个一个干净的人"</p>
+          <h3 class="text-4xl font-serif font-bold mb-4">绾康</h3>
+          <p class="text-sm text-gray-400 mb-12 italic font-light tracking-[0.2em] uppercase">"鍋氫釜涓€涓共鍑€鐨勪汉"</p>
           
           <div class="grid grid-cols-3 gap-10 mb-12">
             <div class="hover:text-[#49b1f5] transition-all duration-500 cursor-pointer">
               <div class="font-serif font-bold text-3xl">7</div>
-              <div class="text-[9px] text-gray-400 uppercase tracking-[0.2em] mt-2 font-bold">文章</div>
+              <div class="text-[9px] text-gray-400 uppercase tracking-[0.2em] mt-2 font-bold">鏂囩珷</div>
             </div>
             <div class="hover:text-[#49b1f5] transition-all duration-500 cursor-pointer">
               <div class="font-serif font-bold text-3xl">12</div>
-              <div class="text-[9px] text-gray-400 uppercase tracking-[0.2em] mt-2 font-bold">标签</div>
+              <div class="text-[9px] text-gray-400 uppercase tracking-[0.2em] mt-2 font-bold">鏍囩</div>
             </div>
             <div class="hover:text-[#49b1f5] transition-all duration-500 cursor-pointer">
               <div class="font-serif font-bold text-3xl">5</div>
-              <div class="text-[9px] text-gray-400 uppercase tracking-[0.2em] mt-2 font-bold">分类</div>
+              <div class="text-[9px] text-gray-400 uppercase tracking-[0.2em] mt-2 font-bold">鍒嗙被</div>
             </div>
           </div>
           
@@ -368,7 +370,7 @@ onUnmounted(() => {
             <svg viewBox="0 0 1024 1024" class="w-5 h-5" fill="currentColor">
               <path d="M682.666667 341.333333c-17.066667 0-34.133333 4.266667-51.2 8.533334-34.133333-106.666667-140.8-179.2-268.8-179.2-153.6 0-277.333333 106.666667-277.333334 238.933333 0 72.533333 38.4 136.533333 102.4 183.466667l-25.6 76.8 89.6-42.666667c34.133333 12.8 68.266667 17.066667 106.666667 17.066667 17.066667 0 34.133333-4.266667 51.2-8.533334 34.133333 106.666667 140.8 179.2 268.8 179.2 153.6 0 277.333333-106.666667 277.333334-238.933333s-123.733333-234.666667-273.066667-234.666667z m-153.6 153.6c-21.333333 0-38.4-17.066667-38.4-38.4s17.066667-38.4 38.4-38.4 38.4 17.066667 38.4 38.4-17.066667 38.4-38.4 38.4z m187.733333 0c-21.333333 0-38.4-17.066667-38.4-38.4s17.066667-38.4 38.4-38.4 38.4 17.066667 38.4 38.4-17.066667 38.4-38.4 38.4z m-384-170.666666c-21.333333 0-38.4-17.066667-38.4-38.4s17.066667-38.4 38.4-38.4 38.4 17.066667 38.4 38.4-17.066667 38.4-38.4 38.4z m187.733333 0c-21.333333 0-38.4-17.066667-38.4-38.4s17.066667-38.4 38.4-38.4 38.4 17.066667 38.4 38.4-17.066667 38.4-38.4 38.4z"></path>
             </svg>
-            <span>关注我</span>
+            <span>鍏虫敞鎴?/span>
           </button>
           
           <div class="flex justify-center space-x-10 text-gray-400">
@@ -389,7 +391,7 @@ onUnmounted(() => {
         <div class="glass rounded-[3rem] p-12 hover:shadow-2xl hover:shadow-[#49b1f5]/20 transition-all duration-700 border border-white/60 hover:border-[#49b1f5]/30">
           <div class="flex items-center space-x-4 mb-10 pb-5 border-b border-gray-100/50">
             <Clock :size="24" class="text-[#49b1f5]" stroke-width="1.5" />
-            <h3 class="font-serif font-bold text-2xl">最新文章</h3>
+            <h3 class="font-serif font-bold text-2xl">鏈€鏂版枃绔?/h3>
           </div>
           <div class="space-y-10">
             <div v-for="post in posts.slice(0, 5)" :key="post.title" class="flex items-center space-x-6 group cursor-pointer">
@@ -413,13 +415,13 @@ onUnmounted(() => {
         <div class="glass rounded-[3rem] p-12 hover:shadow-2xl hover:shadow-[#49b1f5]/20 transition-all duration-700 border border-white/60 hover:border-[#49b1f5]/30">
           <div class="flex items-center space-x-4 mb-10 pb-5 border-b border-gray-100/50">
             <Clock :size="24" class="text-[#49b1f5]" stroke-width="1.5" />
-            <h3 class="font-serif font-bold text-2xl">归档</h3>
+            <h3 class="font-serif font-bold text-2xl">褰掓。</h3>
           </div>
           <div class="space-y-5">
             <div v-for="archive in [
-              { name: '十月 2024', count: 1 },
-              { name: '七月 2023', count: 1 },
-              { name: '六月 2023', count: 5 }
+              { name: '鍗佹湀 2024', count: 1 },
+              { name: '涓冩湀 2023', count: 1 },
+              { name: '鍏湀 2023', count: 5 }
             ]" :key="archive.name" class="flex justify-between items-center text-sm hover:bg-blue-50/50 p-4 rounded-[1.5rem] transition-all duration-500 cursor-pointer group">
               <span class="group-hover:translate-x-3 transition-transform font-bold tracking-wide">{{ archive.name }}</span>
               <span class="bg-gray-100/50 text-gray-400 px-4 py-1.5 rounded-2xl text-[10px] font-black group-hover:bg-[#49b1f5] group-hover:text-white transition-all duration-500">{{ archive.count }}</span>
@@ -431,14 +433,14 @@ onUnmounted(() => {
         <div class="glass rounded-[3rem] p-12 hover:shadow-2xl hover:shadow-[#49b1f5]/20 transition-all duration-700 border border-white/60 hover:border-[#49b1f5]/30">
           <div class="flex items-center space-x-4 mb-10 pb-5 border-b border-gray-100/50">
             <LayoutGrid :size="24" class="text-[#49b1f5]" stroke-width="1.5" />
-            <h3 class="font-serif font-bold text-2xl">分类</h3>
+            <h3 class="font-serif font-bold text-2xl">鍒嗙被</h3>
           </div>
           <div class="space-y-5">
             <div v-for="cat in [
-              { name: '数据库', count: 2 },
-              { name: '后端', count: 2 },
+              { name: '鏁版嵁搴?, count: 2 },
+              { name: '鍚庣', count: 2 },
               { name: 'DevOps', count: 1 },
-              { name: '随笔', count: 2 }
+              { name: '闅忕瑪', count: 2 }
             ]" :key="cat.name" class="flex justify-between items-center text-sm hover:bg-blue-50/50 p-4 rounded-[1.5rem] transition-all duration-500 cursor-pointer group">
               <span class="group-hover:translate-x-3 transition-transform font-bold tracking-wide">{{ cat.name }}</span>
               <span class="bg-gray-100/50 text-gray-400 px-4 py-1.5 rounded-2xl text-[10px] font-black group-hover:bg-[#49b1f5] group-hover:text-white transition-all duration-500">{{ cat.count }}</span>
@@ -450,10 +452,10 @@ onUnmounted(() => {
         <div class="glass rounded-[3rem] p-12 hover:shadow-2xl hover:shadow-[#49b1f5]/20 transition-all duration-700 border border-white/60 hover:border-[#49b1f5]/30">
           <div class="flex items-center space-x-4 mb-10 pb-5 border-b border-gray-100/50">
             <Tag :size="24" class="text-[#49b1f5]" stroke-width="1.5" />
-            <h3 class="font-serif font-bold text-2xl">标签</h3>
+            <h3 class="font-serif font-bold text-2xl">鏍囩</h3>
           </div>
           <div class="flex flex-wrap gap-3">
-            <span v-for="tag in ['Java', 'Spring', 'MySQL', 'Docker', 'PostgreSQL', 'Hexo', '生活', 'DBA', 'SQL', 'Cloud', '感悟', 'Blog']" :key="tag" class="text-[10px] font-bold tracking-widest uppercase px-5 py-2 glass rounded-full text-gray-400 hover:text-[#49b1f5] hover:scale-110 transition-all duration-500 cursor-pointer">
+            <span v-for="tag in ['Java', 'Spring', 'MySQL', 'Docker', 'PostgreSQL', 'Hexo', '鐢熸椿', 'DBA', 'SQL', 'Cloud', '鎰熸偀', 'Blog']" :key="tag" class="text-[10px] font-bold tracking-widest uppercase px-5 py-2 glass rounded-full text-gray-400 hover:text-[#49b1f5] hover:scale-110 transition-all duration-500 cursor-pointer">
               {{ tag }}
             </span>
           </div>
@@ -568,3 +570,6 @@ html {
   scroll-behavior: smooth;
 }
 </style>
+
+
+

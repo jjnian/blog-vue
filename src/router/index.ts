@@ -1,4 +1,4 @@
-import { createRouter, createWebHistory } from 'vue-router';
+﻿import { createRouter, createWebHistory } from 'vue-router';
 import Home from '../views/Home.vue';
 
 const routes = [
@@ -10,6 +10,7 @@ const routes = [
   { path: '/movies', name: '电影', component: () => import('../views/Movies.vue') },
   { path: '/wishes', name: '许愿树', component: () => import('../views/Wishes.vue') },
   { path: '/messagewall', name: '留言墙', component: () => import('../views/NameWall.vue') },
+  { path: '/friends', name: 'Friends', component: () => import('../views/FriendsMap.vue') },
   { path: '/tools', name: '工具', component: () => import('../views/Tools.vue') },
   { path: '/link', name: '友链', component: () => import('../views/Link.vue') },
   { path: '/about', name: '关于', component: () => import('../views/About.vue') },
@@ -21,10 +22,10 @@ const router = createRouter({
   scrollBehavior(to, from, savedPosition) {
     if (savedPosition) {
       return savedPosition;
-    } else {
-      return { top: 0 };
     }
+    return { top: 0 };
   }
 });
 
 export default router;
+
