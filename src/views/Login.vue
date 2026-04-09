@@ -43,10 +43,25 @@ const handleLogin = async () => {
 };
 
 const handleRegister = async () => {
-  if (!registerForm.username || !registerForm.password || !registerForm.email) {
-    error.value = '请填写必填信息';
+  // 客户端验证
+  if (!registerForm.username || registerForm.username.length < 3 || registerForm.username.length > 50) {
+    error.value = '用户名长度必须在3-50个字符之间';
     return;
   }
+  if (!registerForm.password || registerForm.password.length < 6 || registerForm.password.length > 100) {
+    error.value = '密码长度必须在6-100个字符之间';
+    return;
+  }
+  if (!registerForm.email) {
+    error.value = '邮箱不能为空';
+    return;
+  }
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(registerForm.email)) {
+    error.value = '邮箱格式不正确';
+    return;
+  }
+
   loading.value = true;
   error.value = '';
   try {

@@ -48,7 +48,23 @@ async function request<T>(input: RequestInfo | URL, init?: RequestInit): Promise
       localStorage.removeItem('user');
       throw new Error('未授权，请重新登录');
     }
-    throw new Error(`HTTP ${response.status}`);
+
+    // Try to parse error message from response body
+    let errorMessage = `HTTP ${response.status}`;
+    try {
+      const errorBody = await response.json();
+      if (errorBody.errors && errorBody.errors.length > 0) {
+        errorMessage = errorBody.errors[0].defaultMessage || errorBody.message || errorBody.error;
+      } else if (errorBody.message) {
+        errorMessage = errorBody.message;
+      } else if (errorBody.error) {
+        errorMessage = errorBody.error;
+      }
+    } catch {
+      // Ignore if can't parse JSON
+    }
+
+    throw new Error(errorMessage);
   }
 
   const result = (await response.json()) as ApiResult<T>;
