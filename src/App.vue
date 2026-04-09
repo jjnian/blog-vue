@@ -1,6 +1,6 @@
 ﻿<script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue';
-import { useRoute } from 'vue-router';
+import { ref, onMounted, onUnmounted, computed } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 import {
   Home,
   Clock,
@@ -18,8 +18,23 @@ import {
   ChevronUp,
   TreeDeciduous,
   Users,
+  PenLine,
+  Settings,
+  LogOut,
+  LogIn,
 } from 'lucide-vue-next';
 import { getArchives, getArticles, getCategories, getTags } from '@/api/blog';
+import { useAuth } from '@/stores/auth';
+
+const router = useRouter();
+const auth = useAuth();
+const showUserMenu = ref(false);
+
+const handleLogout = () => {
+  auth.clearAuth();
+  showUserMenu.value = false;
+  router.push('/');
+};
 
 const isMenuOpen = ref(false);
 const isScrolled = ref(false);
@@ -143,6 +158,11 @@ const scrollToContent = () => {
 };
 
 const route = useRoute();
+const isAdminRoute = computed(() => route.path.startsWith('/admin'));
+const isFullscreenRoute = computed(() =>
+  route.path.startsWith('/admin') || route.path === '/login'
+);
+const isWriteRoute = computed(() => route.path === '/write');
 
 onMounted(() => {
   typeEffect();
@@ -197,8 +217,15 @@ onUnmounted(() => {
       </div>
     </TransitionGroup>
 
+    <!-- Admin / Fullscreen routes bypass blog layout -->
+    <template v-if="isAdminRoute">
+      <router-view />
+    </template>
+
+    <template v-else>
+
     <!-- Navigation -->
-    <nav 
+    <nav
       :class="[
         'fixed top-0 z-50 w-full transition-all duration-700 px-4 md:px-12 py-4 md:py-5 flex items-center justify-between',
         isScrolled ? 'glass shadow-sm text-[#2c3e50]' : 'bg-transparent text-white drop-shadow-lg'
@@ -232,6 +259,56 @@ onUnmounted(() => {
         <button @click="isSearchOpen = true" class="hover:text-[#49b1f5] hover:scale-110 transition-all duration-500 p-2">
           <Search :size="22" stroke-width="1.5" />
         </button>
+
+        <!-- Write Button (logged in) -->
+        <router-link
+          v-if="auth.isLoggedIn.value"
+          to="/write"
+          class="flex items-center gap-2 px-4 py-2 rounded-full bg-[#49b1f5]/20 hover:bg-[#49b1f5] text-[#49b1f5] hover:text-white transition-all duration-300 text-sm font-semibold border border-[#49b1f5]/30 hover:border-transparent"
+        >
+          <PenLine :size="15" stroke-width="2" />
+          <span>写文章</span>
+        </router-link>
+
+        <!-- User Menu (logged in) -->
+        <div v-if="auth.isLoggedIn.value" class="relative">
+          <button
+            @click="showUserMenu = !showUserMenu"
+            class="flex items-center gap-2 hover:text-[#49b1f5] transition-all duration-300 p-1"
+          >
+            <div class="w-8 h-8 rounded-full bg-gradient-to-br from-[#49b1f5] to-purple-400 flex items-center justify-center text-white text-xs font-bold shadow-md">
+              {{ (auth.user.value?.nickname || auth.user.value?.username || 'U').charAt(0).toUpperCase() }}
+            </div>
+          </button>
+          <div
+            v-if="showUserMenu"
+            class="absolute top-full right-0 mt-2 w-44 glass shadow-2xl rounded-2xl p-2 border border-white/30 z-50"
+          >
+            <router-link
+              v-if="auth.isAdmin.value"
+              to="/admin"
+              @click="showUserMenu = false"
+              class="flex items-center gap-3 px-4 py-2.5 text-sm text-[#2c3e50] hover:bg-[#49b1f5]/10 hover:text-[#49b1f5] rounded-xl transition-all"
+            >
+              <Settings :size="14" /> 管理后台
+            </router-link>
+            <button
+              @click="handleLogout"
+              class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-400 hover:bg-red-50 rounded-xl transition-all"
+            >
+              <LogOut :size="14" /> 退出登录
+            </button>
+          </div>
+        </div>
+
+        <!-- Login Button (not logged in) -->
+        <router-link
+          v-else
+          to="/login"
+          class="flex items-center gap-2 hover:text-[#49b1f5] transition-all duration-500 p-2"
+        >
+          <LogIn :size="22" stroke-width="1.5" />
+        </router-link>
       </div>
 
       <!-- Mobile Menu Toggle -->
@@ -302,13 +379,52 @@ onUnmounted(() => {
                 </router-link>
               </div>
             </div>
+
+            <!-- Auth links for mobile -->
+            <div class="pt-3 mt-3 border-t border-gray-200/50 space-y-1">
+              <router-link
+                v-if="auth.isLoggedIn.value"
+                to="/write"
+                @click="isMenuOpen = false"
+                class="flex items-center space-x-4 text-[#49b1f5] p-3 rounded-xl bg-[#49b1f5]/10 hover:bg-[#49b1f5]/20 transition-all"
+              >
+                <PenLine :size="16" stroke-width="2" />
+                <span class="font-medium tracking-widest uppercase text-xs">写文章</span>
+              </router-link>
+              <router-link
+                v-if="auth.isAdmin.value"
+                to="/admin"
+                @click="isMenuOpen = false"
+                class="flex items-center space-x-4 text-[#2c3e50] hover:text-[#49b1f5] p-3 rounded-xl hover:bg-white/60 transition-all"
+              >
+                <Settings :size="16" stroke-width="1.5" />
+                <span class="font-medium tracking-widest uppercase text-xs">管理后台</span>
+              </router-link>
+              <button
+                v-if="auth.isLoggedIn.value"
+                @click="handleLogout; isMenuOpen = false"
+                class="w-full flex items-center space-x-4 text-red-400 p-3 rounded-xl hover:bg-red-50 transition-all"
+              >
+                <LogOut :size="16" stroke-width="1.5" />
+                <span class="font-medium tracking-widest uppercase text-xs">退出登录</span>
+              </button>
+              <router-link
+                v-else
+                to="/login"
+                @click="isMenuOpen = false"
+                class="flex items-center space-x-4 text-[#2c3e50] hover:text-[#49b1f5] p-3 rounded-xl hover:bg-white/60 transition-all"
+              >
+                <LogIn :size="16" stroke-width="1.5" />
+                <span class="font-medium tracking-widest uppercase text-xs">登录</span>
+              </router-link>
+            </div>
           </div>
         </div>
       </div>
     </Transition>
 
-    <!-- Hero Section -->
-    <header :class="['relative w-full flex items-center justify-center overflow-hidden transition-all duration-700', route.path === '/' ? 'h-screen' : 'h-[40vh]']">
+    <!-- Hero Section (hidden for write/login) -->
+    <header v-if="!isWriteRoute && route.path !== '/login'" :class="['relative w-full flex items-center justify-center overflow-hidden transition-all duration-700', route.path === '/' ? 'h-screen' : 'h-[40vh]']">
       <div class="absolute inset-0 bg-cover bg-center bg-no-repeat transition-transform duration-[3000ms] hover:scale-110" style="background-image: url('https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&q=80&w=1920')"></div>
       <div class="absolute inset-0 bg-gradient-to-b from-black/50 via-black/20 to-transparent"></div>
       
@@ -344,7 +460,18 @@ onUnmounted(() => {
     </header>
 
     <!-- Main Content -->
-    <main id="content" :class="[
+    <main
+      v-if="isWriteRoute || route.path === '/login'"
+      class="pt-16"
+    >
+      <router-view v-slot="{ Component }">
+        <transition name="fade" mode="out-in">
+          <component :is="Component" />
+        </transition>
+      </router-view>
+    </main>
+
+    <main v-else id="content" :class="[
       route.path === '/messagewall' || route.path === '/friends'
         ? 'w-full py-0'
         : 'mx-auto py-12 md:py-24',
@@ -486,14 +613,16 @@ onUnmounted(() => {
 
     <!-- Back to Top -->
     <Transition name="fade">
-      <button 
-        v-if="showBackToTop" 
+      <button
+        v-if="showBackToTop"
         @click="scrollToTop"
         class="fixed bottom-6 md:bottom-12 right-6 md:right-12 z-[100] w-12 h-12 md:w-16 md:h-16 glass text-[#49b1f5] rounded-xl md:rounded-[1.5rem] shadow-2xl flex items-center justify-center hover:bg-[#49b1f5] hover:text-white transition-all duration-500 hover:-translate-y-2 md:hover:-translate-y-4 active:scale-90 group border border-white/60"
       >
         <ChevronUp :size="24" class="md:w-8 md:h-8 group-hover:animate-bounce" stroke-width="2" />
       </button>
     </Transition>
+
+    </template>
   </div>
 </template>
 

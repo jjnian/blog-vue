@@ -8,15 +8,19 @@ import com.jinian.blog.dto.response.PageResponse;
 import com.jinian.blog.entity.Article;
 import com.jinian.blog.entity.Category;
 import com.jinian.blog.entity.TagEntity;
+import com.jinian.blog.entity.User;
 import com.jinian.blog.mapper.ArticleMapper;
 import com.jinian.blog.mapper.CategoryMapper;
 import com.jinian.blog.mapper.TagMapper;
+import com.jinian.blog.mapper.UserMapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Tag(name = "Admin Articles", description = "Admin article management APIs")
@@ -28,6 +32,7 @@ public class AdminArticleController {
     private final ArticleMapper articleMapper;
     private final CategoryMapper categoryMapper;
     private final TagMapper tagMapper;
+    private final UserMapper userMapper;
 
     @Operation(summary = "Get admin article list (paginated)")
     @GetMapping
@@ -35,7 +40,8 @@ public class AdminArticleController {
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) String status,
-            @RequestParam(required = false) Long categoryId) {
+            @RequestParam(required = false) Long categoryId,
+            @RequestParam(required = false) String keyword) {
 
         Page<Article> pageParam = new Page<>(page, size);
         LambdaQueryWrapper<Article> wrapper = new LambdaQueryWrapper<>();
@@ -46,6 +52,9 @@ public class AdminArticleController {
         }
         if (categoryId != null) {
             wrapper.eq(Article::getCategoryId, categoryId);
+        }
+        if (keyword != null && !keyword.isEmpty()) {
+            wrapper.like(Article::getTitle, keyword);
         }
 
         wrapper.orderByDesc(Article::getCreatedAt);
@@ -65,6 +74,16 @@ public class AdminArticleController {
                 .build());
     }
 
+    @Operation(summary = "Get article detail")
+    @GetMapping("/{id}")
+    public Result<ArticleResponse> getArticle(@PathVariable Long id) {
+        Article article = articleMapper.selectById(id);
+        if (article == null) {
+            return Result.error(404, "Article not found");
+        }
+        return Result.success(toResponse(article));
+    }
+
     @Operation(summary = "Update article status")
     @PutMapping("/{id}/status")
     public Result<Void> updateStatus(@PathVariable Long id, @RequestParam String status) {
@@ -73,6 +92,27 @@ public class AdminArticleController {
             return Result.error(404, "Article not found");
         }
         article.setStatus(status);
+        if ("PUBLISHED".equals(status) && article.getPublishedAt() == null) {
+            article.setPublishedAt(LocalDateTime.now());
+        }
+        articleMapper.updateById(article);
+        return Result.success();
+    }
+
+    @Operation(summary = "Review article (approve/reject pending articles)")
+    @PutMapping("/{id}/review")
+    public Result<Void> reviewArticle(@PathVariable Long id, @RequestBody Map<String, String> body) {
+        Article article = articleMapper.selectById(id);
+        if (article == null) {
+            return Result.error(404, "Article not found");
+        }
+        String action = body.get("action"); // APPROVE or REJECT
+        if ("APPROVE".equals(action)) {
+            article.setStatus("PUBLISHED");
+            article.setPublishedAt(LocalDateTime.now());
+        } else if ("REJECT".equals(action)) {
+            article.setStatus("REJECTED");
+        }
         articleMapper.updateById(article);
         return Result.success();
     }
@@ -86,6 +126,17 @@ public class AdminArticleController {
         }
         article.setIsTop(isTop);
         articleMapper.updateById(article);
+        return Result.success();
+    }
+
+    @Operation(summary = "Delete article")
+    @DeleteMapping("/{id}")
+    public Result<Void> deleteArticle(@PathVariable Long id) {
+        Article article = articleMapper.selectById(id);
+        if (article == null) {
+            return Result.error(404, "Article not found");
+        }
+        articleMapper.deleteById(id);
         return Result.success();
     }
 
@@ -112,6 +163,17 @@ public class AdminArticleController {
                         .name(category.getName())
                         .slug(category.getSlug())
                         .color(category.getColor())
+                        .build());
+            }
+        }
+
+        if (article.getAuthorId() != null) {
+            User author = userMapper.selectById(article.getAuthorId());
+            if (author != null) {
+                builder.author(ArticleResponse.AuthorInfo.builder()
+                        .id(author.getId())
+                        .nickname(author.getNickname() != null ? author.getNickname() : author.getUsername())
+                        .avatar(author.getAvatar())
                         .build());
             }
         }

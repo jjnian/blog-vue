@@ -43,21 +43,25 @@ public class SecurityConfig {
                         .authenticationEntryPoint(jwtAuthenticationEntryPoint))
                 .authorizeHttpRequests(auth -> auth
                         // 公开接口 - 认证
-                        .requestMatchers("/auth/login", "/auth/register").permitAll()
-                        // 公开接口 - 文章
-                        .requestMatchers("/articles", "/articles/**").permitAll()
+                        .requestMatchers("/auth/login", "/auth/register", "/auth/refresh").permitAll()
+                        // 公开接口 - 文章（GET公开，POST/PUT/DELETE需要认证）
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/articles", "/articles/**").permitAll()
                         // 公开接口 - 分类、标签
-                        .requestMatchers("/categories", "/categories/**").permitAll()
-                        .requestMatchers("/tags", "/tags/**").permitAll()
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/categories", "/categories/**").permitAll()
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/tags", "/tags/**").permitAll()
                         // 公开接口 - 留言、许愿、友链
-                        .requestMatchers("/messages").permitAll()
-                        .requestMatchers("/wishes").permitAll()
-                        .requestMatchers("/links").permitAll()
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/messages").permitAll()
+                        .requestMatchers(org.springframework.http.HttpMethod.POST, "/messages").permitAll()
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/wishes").permitAll()
+                        .requestMatchers(org.springframework.http.HttpMethod.POST, "/wishes").permitAll()
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/links").permitAll()
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/comments", "/comments/**").permitAll()
+                        .requestMatchers(org.springframework.http.HttpMethod.POST, "/comments").permitAll()
                         // Swagger文档
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         // 管理接口 - 需要ADMIN角色
                         .requestMatchers("/admin/**").hasAnyRole("ADMIN", "SUPER_ADMIN")
-                        // 其他接口需要认证
+                        // 其他接口需要认证（包括POST/PUT/DELETE文章）
                         .anyRequest().authenticated()
                 )
                 .authenticationProvider(authenticationProvider())

@@ -1,4 +1,4 @@
-﻿import { createRouter, createWebHistory } from 'vue-router';
+import { createRouter, createWebHistory } from 'vue-router';
 import Home from '../views/Home.vue';
 
 const routes = [
@@ -14,6 +14,27 @@ const routes = [
   { path: '/tools', name: '工具', component: () => import('../views/Tools.vue') },
   { path: '/link', name: '友链', component: () => import('../views/Link.vue') },
   { path: '/about', name: '关于', component: () => import('../views/About.vue') },
+  { path: '/login', name: '登录', component: () => import('../views/Login.vue') },
+  {
+    path: '/write',
+    name: '写文章',
+    component: () => import('../views/Write.vue'),
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/admin',
+    component: () => import('../views/admin/AdminLayout.vue'),
+    meta: { requiresAuth: true, requiresAdmin: true },
+    children: [
+      { path: '', name: '管理-概览', component: () => import('../views/admin/AdminDashboard.vue') },
+      { path: 'users', name: '管理-用户', component: () => import('../views/admin/AdminUsers.vue') },
+      { path: 'articles', name: '管理-文章', component: () => import('../views/admin/AdminArticles.vue') },
+      { path: 'categories', name: '管理-分类', component: () => import('../views/admin/AdminCategories.vue') },
+      { path: 'tags', name: '管理-标签', component: () => import('../views/admin/AdminTags.vue') },
+      { path: 'comments', name: '管理-评论', component: () => import('../views/admin/AdminComments.vue') },
+      { path: 'roles', name: '管理-角色', component: () => import('../views/admin/AdminRoles.vue') },
+    ],
+  },
 ];
 
 const router = createRouter({
@@ -27,5 +48,31 @@ const router = createRouter({
   }
 });
 
-export default router;
+router.beforeEach((to, _from, next) => {
+  const token = localStorage.getItem('token');
+  const userStr = localStorage.getItem('user');
+  let isAdmin = false;
 
+  if (userStr) {
+    try {
+      const user = JSON.parse(userStr);
+      isAdmin = user.roles?.some((r: string) => r === 'ADMIN' || r === 'SUPER_ADMIN') ?? false;
+    } catch {
+      // ignore
+    }
+  }
+
+  if (to.meta.requiresAuth && !token) {
+    next({ path: '/login', query: { redirect: to.fullPath } });
+    return;
+  }
+
+  if (to.meta.requiresAdmin && !isAdmin) {
+    next({ path: '/' });
+    return;
+  }
+
+  next();
+});
+
+export default router;

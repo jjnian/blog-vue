@@ -22,16 +22,32 @@ function resolveUrl(input: RequestInfo | URL): RequestInfo | URL {
   return `${API_PREFIX}/${input}`;
 }
 
+function getAuthHeaders(): Record<string, string> {
+  const token = localStorage.getItem('token');
+  if (token) {
+    return { Authorization: `Bearer ${token}` };
+  }
+  return {};
+}
+
 async function request<T>(input: RequestInfo | URL, init?: RequestInit): Promise<T> {
   const response = await fetch(resolveUrl(input), {
     headers: {
       'Content-Type': 'application/json',
+      ...getAuthHeaders(),
       ...(init?.headers ?? {}),
     },
     ...init,
   });
 
   if (!response.ok) {
+    if (response.status === 401) {
+      // Clear auth and redirect to login
+      localStorage.removeItem('token');
+      localStorage.removeItem('refreshToken');
+      localStorage.removeItem('user');
+      throw new Error('未授权，请重新登录');
+    }
     throw new Error(`HTTP ${response.status}`);
   }
 
@@ -50,3 +66,20 @@ export const apiPost = <T, B = unknown>(url: string, body: B): Promise<T> =>
     method: 'POST',
     body: JSON.stringify(body),
   });
+
+export const apiPut = <T, B = unknown>(url: string, body?: B): Promise<T> =>
+  request<T>(url, {
+    method: 'PUT',
+    body: body !== undefined ? JSON.stringify(body) : undefined,
+  });
+
+export const apiDelete = <T>(url: string): Promise<T> =>
+  request<T>(url, { method: 'DELETE' });
+
+export const apiPutParams = <T>(url: string, params: Record<string, string | number | boolean>): Promise<T> => {
+  const query = new URLSearchParams();
+  for (const [k, v] of Object.entries(params)) {
+    query.set(k, String(v));
+  }
+  return request<T>(`${url}?${query.toString()}`, { method: 'PUT' });
+};
