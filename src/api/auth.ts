@@ -12,8 +12,9 @@ export interface RegisterRequest {
   nickname?: string;
 }
 
+// 后端 JwtResponse 字段名
 export interface AuthResponse {
-  token: string;
+  accessToken: string;
   refreshToken: string;
   tokenType: string;
   expiresIn: number;
