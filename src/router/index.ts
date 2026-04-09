@@ -16,6 +16,12 @@ const routes = [
   { path: '/about', name: '关于', component: () => import('../views/About.vue') },
   { path: '/login', name: '登录', component: () => import('../views/Login.vue') },
   {
+    path: '/profile',
+    name: '我',
+    component: () => import('../views/Profile.vue'),
+    meta: { requiresAuth: true },
+  },
+  {
     path: '/write',
     name: '写文章',
     component: () => import('../views/Write.vue'),

@@ -25,7 +25,7 @@ const handleLogin = async () => {
   error.value = '';
   try {
     const res = await login({ username: loginForm.username, password: loginForm.password });
-    auth.setAuth(res.token, res.refreshToken, {
+    auth.setAuth(res.accessToken, res.refreshToken, {
       id: res.user.id,
       username: res.user.username,
       nickname: res.user.nickname,
@@ -56,7 +56,7 @@ const handleRegister = async () => {
       email: registerForm.email,
       nickname: registerForm.nickname || undefined,
     });
-    auth.setAuth(res.token, res.refreshToken, {
+    auth.setAuth(res.accessToken, res.refreshToken, {
       id: res.user.id,
       username: res.user.username,
       nickname: res.user.nickname,

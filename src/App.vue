@@ -19,22 +19,12 @@ import {
   TreeDeciduous,
   Users,
   PenLine,
-  Settings,
-  LogOut,
-  LogIn,
 } from 'lucide-vue-next';
 import { getArchives, getArticles, getCategories, getTags } from '@/api/blog';
 import { useAuth } from '@/stores/auth';
 
 const router = useRouter();
 const auth = useAuth();
-const showUserMenu = ref(false);
-
-const handleLogout = () => {
-  auth.clearAuth();
-  showUserMenu.value = false;
-  router.push('/');
-};
 
 const isMenuOpen = ref(false);
 const isScrolled = ref(false);
@@ -162,7 +152,7 @@ const isAdminRoute = computed(() => route.path.startsWith('/admin'));
 const isFullscreenRoute = computed(() =>
   route.path.startsWith('/admin') || route.path === '/login'
 );
-const isWriteRoute = computed(() => route.path === '/write');
+const isWriteRoute = computed(() => route.path === '/write' || route.path === '/profile');
 
 onMounted(() => {
   typeEffect();
@@ -260,7 +250,7 @@ onUnmounted(() => {
           <Search :size="22" stroke-width="1.5" />
         </button>
 
-        <!-- Write Button (logged in) -->
+        <!-- 写文章 (logged in) -->
         <router-link
           v-if="auth.isLoggedIn.value"
           to="/write"
@@ -270,44 +260,19 @@ onUnmounted(() => {
           <span>写文章</span>
         </router-link>
 
-        <!-- User Menu (logged in) -->
-        <div v-if="auth.isLoggedIn.value" class="relative">
-          <button
-            @click="showUserMenu = !showUserMenu"
-            class="flex items-center gap-2 hover:text-[#49b1f5] transition-all duration-300 p-1"
-          >
-            <div class="w-8 h-8 rounded-full bg-gradient-to-br from-[#49b1f5] to-purple-400 flex items-center justify-center text-white text-xs font-bold shadow-md">
-              {{ (auth.user.value?.nickname || auth.user.value?.username || 'U').charAt(0).toUpperCase() }}
-            </div>
-          </button>
-          <div
-            v-if="showUserMenu"
-            class="absolute top-full right-0 mt-2 w-44 glass shadow-2xl rounded-2xl p-2 border border-white/30 z-50"
-          >
-            <router-link
-              v-if="auth.isAdmin.value"
-              to="/admin"
-              @click="showUserMenu = false"
-              class="flex items-center gap-3 px-4 py-2.5 text-sm text-[#2c3e50] hover:bg-[#49b1f5]/10 hover:text-[#49b1f5] rounded-xl transition-all"
-            >
-              <Settings :size="14" /> 管理后台
-            </router-link>
-            <button
-              @click="handleLogout"
-              class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-400 hover:bg-red-50 rounded-xl transition-all"
-            >
-              <LogOut :size="14" /> 退出登录
-            </button>
-          </div>
-        </div>
-
-        <!-- Login Button (not logged in) -->
+        <!-- 我 按钮：未登录→/login，已登录→/profile -->
         <router-link
-          v-else
-          to="/login"
-          class="flex items-center gap-2 hover:text-[#49b1f5] transition-all duration-500 p-2"
+          :to="auth.isLoggedIn.value ? '/profile' : '/login'"
+          class="flex items-center hover:text-[#49b1f5] transition-all duration-300 hover:scale-110"
+          title="我"
         >
-          <LogIn :size="22" stroke-width="1.5" />
+          <div v-if="auth.isLoggedIn.value" class="w-9 h-9 rounded-full bg-gradient-to-br from-[#49b1f5] to-purple-400 flex items-center justify-center text-white text-sm font-bold shadow-md hover:shadow-[#49b1f5]/40 hover:shadow-lg transition-all">
+            {{ (auth.user.value?.nickname || auth.user.value?.username || 'U').charAt(0).toUpperCase() }}
+          </div>
+          <div v-else class="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-current/30 hover:border-[#49b1f5]/50 text-sm font-medium tracking-wider uppercase transition-all">
+            <User :size="16" stroke-width="1.5" />
+            <span class="text-xs">我</span>
+          </div>
         </router-link>
       </div>
 
@@ -391,31 +356,14 @@ onUnmounted(() => {
                 <PenLine :size="16" stroke-width="2" />
                 <span class="font-medium tracking-widest uppercase text-xs">写文章</span>
               </router-link>
+              <!-- 我 → profile or login -->
               <router-link
-                v-if="auth.isAdmin.value"
-                to="/admin"
+                :to="auth.isLoggedIn.value ? '/profile' : '/login'"
                 @click="isMenuOpen = false"
                 class="flex items-center space-x-4 text-[#2c3e50] hover:text-[#49b1f5] p-3 rounded-xl hover:bg-white/60 transition-all"
               >
-                <Settings :size="16" stroke-width="1.5" />
-                <span class="font-medium tracking-widest uppercase text-xs">管理后台</span>
-              </router-link>
-              <button
-                v-if="auth.isLoggedIn.value"
-                @click="handleLogout; isMenuOpen = false"
-                class="w-full flex items-center space-x-4 text-red-400 p-3 rounded-xl hover:bg-red-50 transition-all"
-              >
-                <LogOut :size="16" stroke-width="1.5" />
-                <span class="font-medium tracking-widest uppercase text-xs">退出登录</span>
-              </button>
-              <router-link
-                v-else
-                to="/login"
-                @click="isMenuOpen = false"
-                class="flex items-center space-x-4 text-[#2c3e50] hover:text-[#49b1f5] p-3 rounded-xl hover:bg-white/60 transition-all"
-              >
-                <LogIn :size="16" stroke-width="1.5" />
-                <span class="font-medium tracking-widest uppercase text-xs">登录</span>
+                <User :size="16" stroke-width="1.5" />
+                <span class="font-medium tracking-widest uppercase text-xs">我</span>
               </router-link>
             </div>
           </div>
