@@ -483,9 +483,112 @@ onUnmounted(() => {
         ? 'max-w-none px-0'
         : (route.path === '/wishes'
           ? 'max-w-[1400px] px-4 md:px-8'
-          : 'max-w-7xl px-4 md:px-8 grid grid-cols-1 lg:grid-cols-4 gap-8 md:gap-16')
+          : 'max-w-7xl px-4 md:px-8 grid grid-cols-1 lg:grid-cols-4 gap-6 md:gap-10')
     ]">
-      <!-- Router View -->
+      <!-- Sidebar (left column) -->
+      <aside v-if="route.path !== '/wishes' && route.path !== '/messagewall' && route.path !== '/friends'" class="space-y-4 lg:order-first">
+
+        <!-- Profile Card -->
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden text-center">
+          <div class="h-16 bg-gradient-to-r from-cyan-100/70 to-blue-100/70 relative">
+            <div class="absolute -bottom-9 left-1/2 -translate-x-1/2">
+              <img
+                src="https://picsum.photos/seed/avatar/150/150"
+                alt="Avatar"
+                class="w-[4.5rem] h-[4.5rem] rounded-full border-4 border-white shadow-md"
+                referrerPolicy="no-referrer"
+                v-zoom
+              />
+            </div>
+          </div>
+          <div class="pt-12 pb-5 px-5">
+            <h3 class="font-bold text-gray-800 text-base tracking-widest mb-0.5">绾康</h3>
+            <p class="text-[11px] text-gray-400 mb-4">纪念每一段珍贵的时光</p>
+            <div class="grid grid-cols-3 mb-4 py-3 border-t border-b border-gray-50">
+              <div class="text-center hover:text-[#49b1f5] transition-colors cursor-pointer">
+                <div class="font-bold text-gray-800 text-base">{{ articleTotal }}</div>
+                <div class="text-[10px] text-gray-400 mt-0.5">文章</div>
+              </div>
+              <div class="text-center border-x border-gray-50 hover:text-[#49b1f5] transition-colors cursor-pointer">
+                <div class="font-bold text-gray-800 text-base">{{ categoryTotal }}</div>
+                <div class="text-[10px] text-gray-400 mt-0.5">分类</div>
+              </div>
+              <div class="text-center hover:text-[#49b1f5] transition-colors cursor-pointer">
+                <div class="font-bold text-gray-800 text-base">{{ tagTotal }}</div>
+                <div class="text-[10px] text-gray-400 mt-0.5">标签</div>
+              </div>
+            </div>
+            <router-link to="/link" class="block w-full py-1.5 border border-[#49b1f5] text-[#49b1f5] rounded-lg text-sm font-medium hover:bg-[#49b1f5] hover:text-white transition-all duration-200 text-center">
+              ☆ 友站
+            </router-link>
+          </div>
+        </div>
+
+        <!-- Search -->
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
+          <div class="flex items-center gap-2 text-gray-500 mb-2.5">
+            <Search :size="13" stroke-width="2" />
+            <span class="text-xs font-medium">搜索</span>
+          </div>
+          <input
+            type="text"
+            placeholder="搜索文章..."
+            class="w-full bg-gray-50 border border-gray-100 rounded-lg px-3 py-2 text-sm text-gray-600 placeholder-gray-300 outline-none focus:border-[#49b1f5] focus:bg-white transition-all duration-200"
+          />
+        </div>
+
+        <!-- Recent Posts -->
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
+          <div class="flex items-center gap-2 mb-3 pb-2 border-b border-gray-50">
+            <Clock :size="13" class="text-[#49b1f5]" stroke-width="2" />
+            <h3 class="font-bold text-gray-700 text-sm">最新文章</h3>
+          </div>
+          <div class="space-y-3">
+            <div v-for="post in posts.slice(0, 5)" :key="post.title" class="flex items-center gap-3 group cursor-pointer">
+              <div class="w-11 h-11 rounded-lg overflow-hidden flex-shrink-0">
+                <img
+                  :src="`https://picsum.photos/seed/${post.title}/80/80`"
+                  class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                  referrerPolicy="no-referrer"
+                />
+              </div>
+              <div class="flex-1 min-w-0">
+                <div class="text-xs font-medium text-gray-700 line-clamp-1 group-hover:text-[#49b1f5] transition-colors">{{ post.title }}</div>
+                <div class="text-[10px] text-gray-400 mt-0.5">{{ post.date }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Categories -->
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
+          <div class="flex items-center gap-2 mb-3 pb-2 border-b border-gray-50">
+            <LayoutGrid :size="13" class="text-[#49b1f5]" stroke-width="2" />
+            <h3 class="font-bold text-gray-700 text-sm">分类</h3>
+          </div>
+          <div class="space-y-1">
+            <div v-for="cat in sidebarCategories" :key="cat.name" class="flex justify-between items-center px-2 py-1.5 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer group">
+              <span class="text-xs text-gray-600 group-hover:text-[#49b1f5] transition-colors">{{ cat.name }}</span>
+              <span class="text-[10px] bg-cyan-50 text-cyan-600 px-2 py-0.5 rounded-full font-medium">{{ cat.count }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tags -->
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
+          <div class="flex items-center gap-2 mb-3 pb-2 border-b border-gray-50">
+            <Tag :size="13" class="text-[#49b1f5]" stroke-width="2" />
+            <h3 class="font-bold text-gray-700 text-sm">标签</h3>
+          </div>
+          <div class="flex flex-wrap gap-1.5">
+            <span v-for="tag in sidebarTags" :key="tag" class="text-[10px] px-2.5 py-1 bg-gray-50 border border-gray-100 rounded-full text-gray-500 hover:bg-[#49b1f5] hover:text-white hover:border-[#49b1f5] transition-all duration-200 cursor-pointer">
+              {{ tag }}
+            </span>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Router View (right 3 columns) -->
       <div :class="route.path === '/wishes' || route.path === '/messagewall' || route.path === '/friends' ? '' : 'lg:col-span-3'">
         <router-view v-slot="{ Component }">
           <transition name="fade" mode="out-in">
@@ -493,126 +596,6 @@ onUnmounted(() => {
           </transition>
         </router-view>
       </div>
-
-      <!-- Sidebar -->
-      <aside v-if="route.path !== '/wishes' && route.path !== '/messagewall' && route.path !== '/friends'" class="space-y-16">
-        <!-- Profile Card -->
-        <div class="glass rounded-[3rem] p-12 text-center hover:shadow-2xl hover:shadow-[#49b1f5]/20 transition-all duration-700 group border border-white/60 hover:border-[#49b1f5]/30">
-          <div class="relative inline-block mb-10 animate-float">
-            <div class="absolute inset-0 bg-[#49b1f5]/30 rounded-full blur-3xl group-hover:blur-[4rem] transition-all duration-700"></div>
-            <img 
-              src="https://picsum.photos/seed/avatar/150/150" 
-              alt="Avatar" 
-              class="w-36 h-36 rounded-full mx-auto relative z-10 border-4 border-white shadow-2xl group-hover:rotate-[360deg] transition-transform duration-1000"
-              referrerPolicy="no-referrer"
-              v-zoom
-            />
-            <div class="absolute bottom-5 right-3 w-8 h-8 bg-green-400 border-4 border-white rounded-full z-20"></div>
-          </div>
-          <h3 class="text-4xl font-serif font-bold mb-4">绾康</h3>
-          <p class="text-sm text-gray-400 mb-12 italic font-light tracking-[0.2em] uppercase">"纪念每一段珍贵的时光"</p>
-          
-          <div class="grid grid-cols-3 gap-10 mb-12">
-            <div class="hover:text-[#49b1f5] transition-all duration-500 cursor-pointer">
-              <div class="font-serif font-bold text-3xl">{{ articleTotal }}</div>
-              <div class="text-[9px] text-gray-400 uppercase tracking-[0.2em] mt-2 font-bold">文章</div>
-            </div>
-            <div class="hover:text-[#49b1f5] transition-all duration-500 cursor-pointer">
-              <div class="font-serif font-bold text-3xl">{{ tagTotal }}</div>
-              <div class="text-[9px] text-gray-400 uppercase tracking-[0.2em] mt-2 font-bold">标签</div>
-            </div>
-            <div class="hover:text-[#49b1f5] transition-all duration-500 cursor-pointer">
-              <div class="font-serif font-bold text-3xl">{{ categoryTotal }}</div>
-              <div class="text-[9px] text-gray-400 uppercase tracking-[0.2em] mt-2 font-bold">分类</div>
-            </div>
-          </div>
-          
-          <button class="w-full bg-[#07c160] text-white py-5 rounded-[1.5rem] hover:bg-[#06ad56] transition-all duration-500 flex items-center justify-center space-x-4 mb-10 shadow-2xl shadow-green-200 hover:scale-105 active:scale-95 font-bold tracking-[0.3em] uppercase text-[10px]">
-            <svg viewBox="0 0 1024 1024" class="w-5 h-5" fill="currentColor">
-              <path d="M682.666667 341.333333c-17.066667 0-34.133333 4.266667-51.2 8.533334-34.133333-106.666667-140.8-179.2-268.8-179.2-153.6 0-277.333333 106.666667-277.333334 238.933333 0 72.533333 38.4 136.533333 102.4 183.466667l-25.6 76.8 89.6-42.666667c34.133333 12.8 68.266667 17.066667 106.666667 17.066667 17.066667 0 34.133333-4.266667 51.2-8.533334 34.133333 106.666667 140.8 179.2 268.8 179.2 153.6 0 277.333333-106.666667 277.333334-238.933333s-123.733333-234.666667-273.066667-234.666667z m-153.6 153.6c-21.333333 0-38.4-17.066667-38.4-38.4s17.066667-38.4 38.4-38.4 38.4 17.066667 38.4 38.4-17.066667 38.4-38.4 38.4z m187.733333 0c-21.333333 0-38.4-17.066667-38.4-38.4s17.066667-38.4 38.4-38.4 38.4 17.066667 38.4 38.4-17.066667 38.4-38.4 38.4z m-384-170.666666c-21.333333 0-38.4-17.066667-38.4-38.4s17.066667-38.4 38.4-38.4 38.4 17.066667 38.4 38.4-17.066667 38.4-38.4 38.4z m187.733333 0c-21.333333 0-38.4-17.066667-38.4-38.4s17.066667-38.4 38.4-38.4 38.4 17.066667 38.4 38.4-17.066667 38.4-38.4 38.4z"></path>
-            </svg>
-            <span>关注我</span>
-          </button>
-          
-          <div class="flex justify-center space-x-10 text-gray-400">
-            <div class="hover:text-[#07c160] hover:scale-125 transition-all duration-500 cursor-pointer">
-              <svg viewBox="0 0 1024 1024" class="w-7 h-7" fill="currentColor">
-                <path d="M682.666667 341.333333c-17.066667 0-34.133333 4.266667-51.2 8.533334-34.133333-106.666667-140.8-179.2-268.8-179.2-153.6 0-277.333333 106.666667-277.333334 238.933333 0 72.533333 38.4 136.533333 102.4 183.466667l-25.6 76.8 89.6-42.666667c34.133333 12.8 68.266667 17.066667 106.666667 17.066667 17.066667 0 34.133333-4.266667 51.2-8.533334 34.133333 106.666667 140.8 179.2 268.8 179.2 153.6 0 277.333333-106.666667 277.333334-238.933333s-123.733333-234.666667-273.066667-234.666667z m-153.6 153.6c-21.333333 0-38.4-17.066667-38.4-38.4s17.066667-38.4 38.4-38.4 38.4 17.066667 38.4 38.4-17.066667 38.4-38.4 38.4z m187.733333 0c-21.333333 0-38.4-17.066667-38.4-38.4s17.066667-38.4 38.4-38.4 38.4 17.066667 38.4 38.4-17.066667 38.4-38.4 38.4z m-384-170.666666c-21.333333 0-38.4-17.066667-38.4-38.4s17.066667-38.4 38.4-38.4 38.4 17.066667 38.4 38.4-17.066667 38.4-38.4 38.4z m187.733333 0c-21.333333 0-38.4-17.066667-38.4-38.4s17.066667-38.4 38.4-38.4 38.4 17.066667 38.4 38.4-17.066667 38.4-38.4 38.4z"></path>
-              </svg>
-            </div>
-            <div class="hover:text-[#fe2c55] hover:scale-125 transition-all duration-500 cursor-pointer">
-              <svg viewBox="0 0 1024 1024" class="w-7 h-7" fill="currentColor">
-                <path d="M895.898 403.456c-85.197 0-161.485-34.15-217.19-89.242V736.358c0 148.89-120.678 269.568-269.568 269.568S139.57 885.248 139.57 736.358c0-148.89 120.678-269.568 269.568-269.568 27.238 0 53.453 4.045 78.438 11.52v159.642c-24.166-10.752-50.637-16.742-78.438-16.742-74.445 0-134.784 60.34-134.784 134.784s60.34 134.784 134.784 134.784 134.784-60.34 134.784-134.784V18.125h154.42c16.332 101.99 98.406 181.555 201.267 195.482v189.85z"></path>
-              </svg>
-            </div>
-          </div>
-        </div>
-
-        <!-- Recent Posts -->
-        <div class="glass rounded-[3rem] p-12 hover:shadow-2xl hover:shadow-[#49b1f5]/20 transition-all duration-700 border border-white/60 hover:border-[#49b1f5]/30">
-          <div class="flex items-center space-x-4 mb-10 pb-5 border-b border-gray-100/50">
-            <Clock :size="24" class="text-[#49b1f5]" stroke-width="1.5" />
-            <h3 class="font-serif font-bold text-2xl">最新文章</h3>
-          </div>
-          <div class="space-y-10">
-            <div v-for="post in posts.slice(0, 5)" :key="post.title" class="flex items-center space-x-6 group cursor-pointer">
-              <div class="w-20 h-20 rounded-[1.25rem] overflow-hidden flex-shrink-0 shadow-md">
-                <img 
-                  :src="`https://picsum.photos/seed/${post.title}/100/100`" 
-                  class="w-full h-full object-cover group-hover:scale-125 transition-transform duration-[1000ms]"
-                  referrerPolicy="no-referrer"
-                  v-zoom
-                />
-              </div>
-              <div class="flex-1">
-                <div class="text-base font-bold line-clamp-1 group-hover:text-[#49b1f5] transition-all duration-500 leading-tight">{{ post.title }}</div>
-                <div class="text-[10px] text-gray-400 mt-3 font-bold tracking-[0.15em] uppercase">{{ post.date }}</div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Archives -->
-        <div class="glass rounded-[3rem] p-12 hover:shadow-2xl hover:shadow-[#49b1f5]/20 transition-all duration-700 border border-white/60 hover:border-[#49b1f5]/30">
-          <div class="flex items-center space-x-4 mb-10 pb-5 border-b border-gray-100/50">
-            <Clock :size="24" class="text-[#49b1f5]" stroke-width="1.5" />
-            <h3 class="font-serif font-bold text-2xl">归档</h3>
-          </div>
-          <div class="space-y-5">
-            <div v-for="archive in sidebarArchives" :key="archive.name" class="flex justify-between items-center text-sm hover:bg-blue-50/50 p-4 rounded-[1.5rem] transition-all duration-500 cursor-pointer group">
-              <span class="group-hover:translate-x-3 transition-transform font-bold tracking-wide">{{ archive.name }}</span>
-              <span class="bg-gray-100/50 text-gray-400 px-4 py-1.5 rounded-2xl text-[10px] font-black group-hover:bg-[#49b1f5] group-hover:text-white transition-all duration-500">{{ archive.count }}</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Categories Widget -->
-        <div class="glass rounded-[3rem] p-12 hover:shadow-2xl hover:shadow-[#49b1f5]/20 transition-all duration-700 border border-white/60 hover:border-[#49b1f5]/30">
-          <div class="flex items-center space-x-4 mb-10 pb-5 border-b border-gray-100/50">
-            <LayoutGrid :size="24" class="text-[#49b1f5]" stroke-width="1.5" />
-            <h3 class="font-serif font-bold text-2xl">分类</h3>
-          </div>
-          <div class="space-y-5">
-            <div v-for="cat in sidebarCategories" :key="cat.name" class="flex justify-between items-center text-sm hover:bg-blue-50/50 p-4 rounded-[1.5rem] transition-all duration-500 cursor-pointer group">
-              <span class="group-hover:translate-x-3 transition-transform font-bold tracking-wide">{{ cat.name }}</span>
-              <span class="bg-gray-100/50 text-gray-400 px-4 py-1.5 rounded-2xl text-[10px] font-black group-hover:bg-[#49b1f5] group-hover:text-white transition-all duration-500">{{ cat.count }}</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Tags Widget -->
-        <div class="glass rounded-[3rem] p-12 hover:shadow-2xl hover:shadow-[#49b1f5]/20 transition-all duration-700 border border-white/60 hover:border-[#49b1f5]/30">
-          <div class="flex items-center space-x-4 mb-10 pb-5 border-b border-gray-100/50">
-            <Tag :size="24" class="text-[#49b1f5]" stroke-width="1.5" />
-            <h3 class="font-serif font-bold text-2xl">标签</h3>
-          </div>
-          <div class="flex flex-wrap gap-3">
-            <span v-for="tag in sidebarTags" :key="tag" class="text-[10px] font-bold tracking-widest uppercase px-5 py-2 glass rounded-full text-gray-400 hover:text-[#49b1f5] hover:scale-110 transition-all duration-500 cursor-pointer">
-              {{ tag }}
-            </span>
-          </div>
-        </div>
-      </aside>
     </main>
 
     <!-- Write FAB (logged-in only) -->
