@@ -297,7 +297,7 @@ onUnmounted(() => {
       ]"
     >
       <div class="text-2xl md:text-3xl font-serif font-bold tracking-widest cursor-pointer hover:scale-105 transition-transform duration-500">
-        绾康
+        纪念
       </div>
 
       <!-- Desktop Nav -->
@@ -389,7 +389,7 @@ onUnmounted(() => {
                 v-zoom
               />
               <div>
-                <h2 class="text-lg font-serif font-bold text-[#2c3e50]">绾康</h2>
+                <h2 class="text-lg font-serif font-bold text-[#2c3e50]">纪念</h2>
                 <p class="text-[10px] text-gray-500 font-light uppercase tracking-wider">纪念每一段珍贵的时光</p>
               </div>
             </div>
@@ -433,7 +433,7 @@ onUnmounted(() => {
       <div class="absolute inset-0 bg-gradient-to-b from-black/50 via-black/20 to-transparent"></div>
       
       <div class="relative z-10 text-center text-white px-6">
-        <h1 v-if="route.path === '/'" class="text-5xl md:text-9xl font-serif font-bold mb-6 md:mb-10 animate-hero-title tracking-tighter drop-shadow-[0_0_30px_rgba(255,255,255,0.5)]">绾康</h1>
+        <h1 v-if="route.path === '/'" class="text-5xl md:text-9xl font-serif font-bold mb-6 md:mb-10 animate-hero-title tracking-tighter drop-shadow-[0_0_30px_rgba(255,255,255,0.5)]">纪念</h1>
         <h1 v-else class="text-4xl md:text-6xl font-serif font-bold mb-4 animate-hero-title tracking-widest drop-shadow-[0_0_20px_rgba(255,255,255,0.5)]">{{ route.name }}</h1>
         
         <div class="h-px w-20 md:w-32 bg-white/40 mx-auto mb-6 md:mb-10 animate-hero-subtitle"></div>
@@ -509,7 +509,7 @@ onUnmounted(() => {
             />
             <div class="absolute bottom-5 right-3 w-8 h-8 bg-green-400 border-4 border-white rounded-full z-20"></div>
           </div>
-          <h3 class="text-4xl font-serif font-bold mb-4">绾康</h3>
+          <h3 class="text-4xl font-serif font-bold mb-4">纪念</h3>
           <p class="text-sm text-gray-400 mb-12 italic font-light tracking-[0.2em] uppercase">"纪念每一段珍贵的时光"</p>
           
           <div class="grid grid-cols-3 gap-10 mb-12">
