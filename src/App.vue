@@ -38,7 +38,7 @@ const showBackToTop = ref(false);
 const scrollProgress = ref(0);
 
 const typedText = ref('');
-const fullText = '做一个干净的人';
+const fullText = '纪念每一段珍贵的时光';
 let typingIndex = 0;
 
 const typeEffect = () => {
@@ -136,8 +136,12 @@ const normalizeMenuItem = (menu: { name: string; path?: string; icon?: string; v
 };
 
 const loadNavMenus = async () => {
+  if (!auth.isLoggedIn.value) {
+    navItems.value = fallbackNavItems;
+    return;
+  }
   try {
-    const menus = auth.isLoggedIn.value ? await getUserMenus() : await getPublicMenus();
+    const menus = await getUserMenus();
     const mapped = menus
       .map((menu) => normalizeMenuItem(menu))
       .filter((menu): menu is NavItem => Boolean(menu));
@@ -350,14 +354,14 @@ onUnmounted(() => {
           <div class="p-10 border-b border-gray-100/50 flex items-center justify-between">
             <div class="flex items-center space-x-5 flex-1">
               <Search class="text-[#49b1f5]" :size="28" stroke-width="1.5" />
-              <input type="text" placeholder="鎺㈢储浣犵殑鐏垫劅..." class="w-full outline-none text-2xl font-serif italic tracking-wide bg-transparent" autofocus />
+              <input type="text" placeholder="探索你的灵感..." class="w-full outline-none text-2xl font-serif italic tracking-wide bg-transparent" autofocus />
             </div>
             <button @click="isSearchOpen = false" class="text-gray-400 hover:text-red-400 transition-all duration-300 hover:rotate-90">
               <X :size="32" stroke-width="1.5" />
             </button>
           </div>
           <div class="p-20 text-center text-gray-400 font-serif italic text-xl">
-            "鍦ㄦ枃瀛楃殑娴锋磱閲岋紝瀵绘壘閭ｄ竴鎶硅瘲鎰?.."
+            "在文字的海洋里，寻找那一抹诗意..."
           </div>
         </div>
       </div>
@@ -386,7 +390,7 @@ onUnmounted(() => {
               />
               <div>
                 <h2 class="text-lg font-serif font-bold text-[#2c3e50]">绾康</h2>
-                <p class="text-[10px] text-gray-500 font-light uppercase tracking-wider">鍋氫釜涓€涓共鍑€鐨勪汉</p>
+                <p class="text-[10px] text-gray-500 font-light uppercase tracking-wider">纪念每一段珍贵的时光</p>
               </div>
             </div>
             <button @click="isMenuOpen = false" class="text-[#2c3e50] hover:rotate-90 transition-transform duration-500 p-2">
@@ -459,26 +463,6 @@ onUnmounted(() => {
       </div>
     </header>
 
-    <section v-if="route.path === '/' && auth.isLoggedIn.value" class="relative z-20 -mt-8 md:-mt-16 px-4 md:px-8 mx-auto max-w-7xl">
-      <router-link
-        to="/write"
-        class="group flex flex-col md:flex-row md:items-center justify-between gap-4 md:gap-8 rounded-[2rem] md:rounded-[2.5rem] border border-white/70 bg-white/85 backdrop-blur-xl px-6 py-5 md:px-8 md:py-6 shadow-[0_20px_60px_rgba(73,177,245,0.14)] hover:shadow-[0_30px_80px_rgba(73,177,245,0.22)] hover:-translate-y-1 transition-all duration-500"
-      >
-        <div class="flex items-center gap-4">
-          <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#49b1f5] to-[#3a9de8] flex items-center justify-center shadow-lg shadow-[#49b1f5]/30">
-            <PenLine :size="22" class="text-white" stroke-width="2" />
-          </div>
-          <div>
-            <h2 class="text-lg md:text-xl font-bold text-[#2c3e50]">写文档</h2>
-            <p class="text-sm text-gray-500">把内容直接写进后台，入口放在首页这里更顺手。</p>
-          </div>
-        </div>
-        <div class="flex items-center gap-2 text-[#49b1f5] font-semibold tracking-widest uppercase text-xs md:text-sm">
-          <span>进入编辑器</span>
-          <ChevronRight :size="16" class="group-hover:translate-x-1 transition-transform" />
-        </div>
-      </router-link>
-    </section>
     <!-- Main Content -->
     <main
       v-if="isWriteRoute || route.path === '/login'"
@@ -526,20 +510,20 @@ onUnmounted(() => {
             <div class="absolute bottom-5 right-3 w-8 h-8 bg-green-400 border-4 border-white rounded-full z-20"></div>
           </div>
           <h3 class="text-4xl font-serif font-bold mb-4">绾康</h3>
-          <p class="text-sm text-gray-400 mb-12 italic font-light tracking-[0.2em] uppercase">"鍋氫釜涓€涓共鍑€鐨勪汉"</p>
+          <p class="text-sm text-gray-400 mb-12 italic font-light tracking-[0.2em] uppercase">"纪念每一段珍贵的时光"</p>
           
           <div class="grid grid-cols-3 gap-10 mb-12">
             <div class="hover:text-[#49b1f5] transition-all duration-500 cursor-pointer">
               <div class="font-serif font-bold text-3xl">{{ articleTotal }}</div>
-              <div class="text-[9px] text-gray-400 uppercase tracking-[0.2em] mt-2 font-bold">鏂囩珷</div>
+              <div class="text-[9px] text-gray-400 uppercase tracking-[0.2em] mt-2 font-bold">文章</div>
             </div>
             <div class="hover:text-[#49b1f5] transition-all duration-500 cursor-pointer">
               <div class="font-serif font-bold text-3xl">{{ tagTotal }}</div>
-              <div class="text-[9px] text-gray-400 uppercase tracking-[0.2em] mt-2 font-bold">鏍囩</div>
+              <div class="text-[9px] text-gray-400 uppercase tracking-[0.2em] mt-2 font-bold">标签</div>
             </div>
             <div class="hover:text-[#49b1f5] transition-all duration-500 cursor-pointer">
               <div class="font-serif font-bold text-3xl">{{ categoryTotal }}</div>
-              <div class="text-[9px] text-gray-400 uppercase tracking-[0.2em] mt-2 font-bold">鍒嗙被</div>
+              <div class="text-[9px] text-gray-400 uppercase tracking-[0.2em] mt-2 font-bold">分类</div>
             </div>
           </div>
           
@@ -592,7 +576,7 @@ onUnmounted(() => {
         <div class="glass rounded-[3rem] p-12 hover:shadow-2xl hover:shadow-[#49b1f5]/20 transition-all duration-700 border border-white/60 hover:border-[#49b1f5]/30">
           <div class="flex items-center space-x-4 mb-10 pb-5 border-b border-gray-100/50">
             <Clock :size="24" class="text-[#49b1f5]" stroke-width="1.5" />
-            <h3 class="font-serif font-bold text-2xl">褰掓。</h3>
+            <h3 class="font-serif font-bold text-2xl">归档</h3>
           </div>
           <div class="space-y-5">
             <div v-for="archive in sidebarArchives" :key="archive.name" class="flex justify-between items-center text-sm hover:bg-blue-50/50 p-4 rounded-[1.5rem] transition-all duration-500 cursor-pointer group">
@@ -606,7 +590,7 @@ onUnmounted(() => {
         <div class="glass rounded-[3rem] p-12 hover:shadow-2xl hover:shadow-[#49b1f5]/20 transition-all duration-700 border border-white/60 hover:border-[#49b1f5]/30">
           <div class="flex items-center space-x-4 mb-10 pb-5 border-b border-gray-100/50">
             <LayoutGrid :size="24" class="text-[#49b1f5]" stroke-width="1.5" />
-            <h3 class="font-serif font-bold text-2xl">鍒嗙被</h3>
+            <h3 class="font-serif font-bold text-2xl">分类</h3>
           </div>
           <div class="space-y-5">
             <div v-for="cat in sidebarCategories" :key="cat.name" class="flex justify-between items-center text-sm hover:bg-blue-50/50 p-4 rounded-[1.5rem] transition-all duration-500 cursor-pointer group">
@@ -620,7 +604,7 @@ onUnmounted(() => {
         <div class="glass rounded-[3rem] p-12 hover:shadow-2xl hover:shadow-[#49b1f5]/20 transition-all duration-700 border border-white/60 hover:border-[#49b1f5]/30">
           <div class="flex items-center space-x-4 mb-10 pb-5 border-b border-gray-100/50">
             <Tag :size="24" class="text-[#49b1f5]" stroke-width="1.5" />
-            <h3 class="font-serif font-bold text-2xl">鏍囩</h3>
+            <h3 class="font-serif font-bold text-2xl">标签</h3>
           </div>
           <div class="flex flex-wrap gap-3">
             <span v-for="tag in sidebarTags" :key="tag" class="text-[10px] font-bold tracking-widest uppercase px-5 py-2 glass rounded-full text-gray-400 hover:text-[#49b1f5] hover:scale-110 transition-all duration-500 cursor-pointer">
@@ -630,6 +614,22 @@ onUnmounted(() => {
         </div>
       </aside>
     </main>
+
+    <!-- Write FAB (logged-in only) -->
+    <Transition name="fade">
+      <router-link
+        v-if="auth.isLoggedIn.value && !isWriteRoute && route.path !== '/login'"
+        to="/write"
+        :class="[
+          'fixed z-[99] w-12 h-12 md:w-14 md:h-14 bg-gradient-to-br from-[#49b1f5] to-[#3a9de8] text-white rounded-xl md:rounded-2xl shadow-lg shadow-[#49b1f5]/30 flex items-center justify-center hover:scale-110 hover:shadow-xl hover:shadow-[#49b1f5]/40 active:scale-95 transition-all duration-300 group',
+          showBackToTop ? 'bottom-24 md:bottom-32 right-6 md:right-12' : 'bottom-6 md:bottom-12 right-6 md:right-12'
+        ]"
+        title="写文章"
+      >
+        <PenLine :size="20" class="md:w-6 md:h-6" stroke-width="2" />
+        <span class="absolute right-full mr-3 bg-[#2c3e50]/80 backdrop-blur-sm text-white text-xs font-medium px-3 py-1.5 rounded-lg shadow opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap pointer-events-none">写文章</span>
+      </router-link>
+    </Transition>
 
     <!-- Back to Top -->
     <Transition name="fade">
