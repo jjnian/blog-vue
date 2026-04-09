@@ -1,5 +1,5 @@
 import { apiGet, apiPost, apiPut, apiDelete, apiPutParams } from './http';
-import type { PageResponse, Article, Category, Tag } from './blog';
+import type { PageResponse, Article, Category, Tag, MenuResponse } from './blog';
 
 // ===== Stats =====
 export interface AdminStats {
@@ -63,6 +63,9 @@ export const updateRole = (id: number, role: Partial<AdminRole>) =>
   apiPut<AdminRole, Partial<AdminRole>>(`/admin/roles/${id}`, role);
 
 export const deleteRole = (id: number) => apiDelete<void>(`/admin/roles/${id}`);
+export const getRoleMenus = (roleId: number) => apiGet<number[]>(`/admin/roles/${roleId}/menus`);
+export const updateRoleMenus = (roleId: number, menuIds: number[]) =>
+  apiPut<void, number[]>(`/admin/roles/${roleId}/menus`, menuIds);
 
 // ===== Articles =====
 export interface AdminArticle {
@@ -109,6 +112,9 @@ export const toggleArticleTop = (id: number, isTop: boolean) =>
   apiPutParams<void>(`/admin/articles/${id}/top`, { isTop });
 
 export const deleteAdminArticle = (id: number) => apiDelete<void>(`/admin/articles/${id}`);
+
+// ===== Menus =====
+export const getAdminMenus = () => apiGet<MenuResponse[]>('/admin/menus');
 
 // ===== Categories =====
 export const getAdminCategories = (params: { page?: number; size?: number; keyword?: string } = {}) => {

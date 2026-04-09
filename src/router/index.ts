@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import Home from '../views/Home.vue';
+import { getPublicMenus, getUserMenus, type MenuResponse } from '@/api/blog';
 
 const routes = [
   { path: '/', name: '主页', component: Home },
@@ -10,7 +11,7 @@ const routes = [
   { path: '/movies', name: '电影', component: () => import('../views/Movies.vue') },
   { path: '/wishes', name: '许愿树', component: () => import('../views/Wishes.vue') },
   { path: '/messagewall', name: '留言墙', component: () => import('../views/NameWall.vue') },
-  { path: '/friends', name: 'Friends', component: () => import('../views/FriendsMap.vue') },
+  { path: '/friends', name: '朋友地图', component: () => import('../views/FriendsMap.vue') },
   { path: '/tools', name: '工具', component: () => import('../views/Tools.vue') },
   { path: '/link', name: '友链', component: () => import('../views/Link.vue') },
   { path: '/about', name: '关于', component: () => import('../views/About.vue') },
@@ -54,7 +55,34 @@ const router = createRouter({
   }
 });
 
-router.beforeEach((to, _from, next) => {
+const flattenMenuPaths = (menus: MenuResponse[]): string[] => {
+  const paths: string[] = [];
+
+  const walk = (items: MenuResponse[]) => {
+    items.forEach((item) => {
+      if (item.visible === false) return;
+      if (item.path && item.path !== '#' && !item.path.startsWith('/admin')) {
+        paths.push(item.path);
+      }
+      if (item.children?.length) {
+        walk(item.children);
+      }
+    });
+  };
+
+  walk(menus || []);
+  return Array.from(new Set(paths));
+};
+
+const isPathAllowed = (path: string, allowed: string[]) => {
+  return allowed.some((allowedPath) => {
+    if (allowedPath === path) return true;
+    if (allowedPath === '/') return path === '/';
+    return path.startsWith(`${allowedPath}/`);
+  });
+};
+
+router.beforeEach(async (to, _from, next) => {
   const token = localStorage.getItem('token');
   const userStr = localStorage.getItem('user');
   let isAdmin = false;
@@ -76,6 +104,37 @@ router.beforeEach((to, _from, next) => {
   if (to.meta.requiresAdmin && !isAdmin) {
     next({ path: '/' });
     return;
+  }
+
+  if (to.path.startsWith('/admin')) {
+    next();
+    return;
+  }
+
+  if (to.path === '/login') {
+    next();
+    return;
+  }
+
+  try {
+    const menus = token ? await getUserMenus() : await getPublicMenus();
+    const allowedPaths = flattenMenuPaths(menus);
+    const specialPaths = token ? ['/', '/profile', '/write'] : ['/'];
+
+    if (!specialPaths.includes(to.path) && !isPathAllowed(to.path, allowedPaths)) {
+      next({ path: token ? '/' : '/login', query: token ? undefined : { redirect: to.fullPath } });
+      return;
+    }
+  } catch {
+    if (token) {
+      next({ path: '/login', query: { redirect: to.fullPath } });
+      return;
+    }
+
+    if (!token && to.path !== '/' && to.path !== '/login') {
+      next({ path: '/login', query: { redirect: to.fullPath } });
+      return;
+    }
   }
 
   next();

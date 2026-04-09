@@ -20,18 +20,40 @@ ON CONFLICT (code) DO NOTHING;
 -- ============================================================
 
 INSERT INTO menus (name, code, path, icon, sort_order) VALUES
-('Home',         'HOME',         '/',            'Home',          1),
-('Archives',     'ARCHIVES',     '/archives',    'Clock',         2),
-('Tags',         'TAGS',         '/tags',        'Tag',           3),
-('Categories',   'CATEGORIES',   '/categories',  'LayoutGrid',    4),
-('Music',        'MUSIC',        '/music',       'Music',         5),
-('Movies',       'MOVIES',       '/movies',      'Film',          6),
-('Wishes',       'WISHES',       '/wishes',      'TreeDeciduous', 7),
-('Message Wall', 'MESSAGE_WALL', '/messagewall', 'MessageSquare', 8),
-('Tools',        'TOOLS',        '/tools',       'Wrench',        9),
-('Links',        'LINKS',        '/link',        'Link',          10),
-('About',        'ABOUT',        '/about',       'User',          11)
+('首页',         'HOME',         '/',            'Home',          1),
+('时间线',       'ARCHIVES',     '/archives',    'Clock',          2),
+('标签',         'TAGS',         '/tags',        'Tag',            3),
+('分类',         'CATEGORIES',   '/categories',  'LayoutGrid',     4),
+('许愿树',       'WISHES',       '/wishes',      'TreeDeciduous',  7),
+('朋友地图',     'FRIENDS',      '/friends',     'Users',          8),
+('留言墙',       'MESSAGE_WALL', '/messagewall', 'MessageSquare',  9),
+('工具箱',       'TOOLS',        '/tools',       'Wrench',         10),
+('友链',         'LINKS',        '/link',        'Link',           11),
+('关于',         'ABOUT',        '/about',       'User',           12)
 ON CONFLICT (code) DO NOTHING;
+
+INSERT INTO menus (name, code, path, icon, sort_order) VALUES
+('休闲', 'LEISURE', '#', 'Music', 5)
+ON CONFLICT (code) DO NOTHING;
+
+WITH leisure_menu AS (SELECT id FROM menus WHERE code = 'LEISURE')
+UPDATE menus
+SET parent_id = (SELECT id FROM leisure_menu),
+    sort_order = CASE code
+        WHEN 'MUSIC' THEN 1
+        WHEN 'MOVIES' THEN 2
+        ELSE sort_order
+    END
+WHERE code IN ('MUSIC', 'MOVIES');
+
+INSERT INTO menus (name, code, path, icon, sort_order, parent_id) VALUES
+('音乐',         'MUSIC',        '/music',       'Music',         1, (SELECT id FROM menus WHERE code = 'LEISURE')),
+('电影',         'MOVIES',       '/movies',      'Film',          2, (SELECT id FROM menus WHERE code = 'LEISURE'))
+ON CONFLICT (code) DO UPDATE SET
+    parent_id = EXCLUDED.parent_id,
+    sort_order = EXCLUDED.sort_order,
+    path = EXCLUDED.path,
+    icon = EXCLUDED.icon;
 
 INSERT INTO menus (name, code, path, icon, sort_order, parent_id) VALUES
 ('Admin', 'ADMIN', '/admin', 'Settings', 100, NULL)
@@ -67,18 +89,18 @@ ON CONFLICT (code) DO NOTHING;
 -- ============================================================
 
 INSERT INTO permissions (name, code, resource_type, resource_path) VALUES
-('Visit Home',         'MENU:HOME',         'MENU', '/'),
-('Visit Archives',     'MENU:ARCHIVES',     'MENU', '/archives'),
-('Visit Tags',         'MENU:TAGS',         'MENU', '/tags'),
-('Visit Categories',   'MENU:CATEGORIES',   'MENU', '/categories'),
-('Visit Music',        'MENU:MUSIC',        'MENU', '/music'),
-('Visit Movies',       'MENU:MOVIES',       'MENU', '/movies'),
-('Visit Wishes',       'MENU:WISHES',       'MENU', '/wishes'),
-('Visit Message Wall', 'MENU:MESSAGE_WALL', 'MENU', '/messagewall'),
-('Visit Tools',        'MENU:TOOLS',        'MENU', '/tools'),
-('Visit Links',        'MENU:LINKS',        'MENU', '/link'),
-('Visit About',        'MENU:ABOUT',        'MENU', '/about'),
-('Visit Admin',        'MENU:ADMIN',        'MENU', '/admin')
+('访问首页',         'MENU:HOME',         'MENU', '/'),
+('访问时间线',       'MENU:ARCHIVES',     'MENU', '/archives'),
+('访问标签',         'MENU:TAGS',         'MENU', '/tags'),
+('访问分类',         'MENU:CATEGORIES',   'MENU', '/categories'),
+('访问音乐',         'MENU:MUSIC',        'MENU', '/music'),
+('访问电影',         'MENU:MOVIES',       'MENU', '/movies'),
+('访问许愿树',       'MENU:WISHES',       'MENU', '/wishes'),
+('访问留言墙',       'MENU:MESSAGE_WALL', 'MENU', '/messagewall'),
+('访问工具箱',       'MENU:TOOLS',        'MENU', '/tools'),
+('访问友链',         'MENU:LINKS',        'MENU', '/link'),
+('访问关于',         'MENU:ABOUT',        'MENU', '/about'),
+('访问后台',         'MENU:ADMIN',        'MENU', '/admin')
 ON CONFLICT (code) DO NOTHING;
 
 INSERT INTO permissions (name, code, resource_type, resource_path) VALUES
@@ -114,7 +136,14 @@ ON CONFLICT DO NOTHING;
 INSERT INTO role_menus (role_id, menu_id)
 SELECT r.id, m.id FROM roles r, menus m
 WHERE r.code = 'USER'
-  AND m.code IN ('HOME','ARCHIVES','TAGS','CATEGORIES','MUSIC','MOVIES','WISHES','MESSAGE_WALL','TOOLS','LINKS','ABOUT')
+  AND m.code IN ('HOME','ARCHIVES','TAGS','CATEGORIES','LEISURE','MUSIC','MOVIES','WISHES','FRIENDS','MESSAGE_WALL','TOOLS','LINKS','ABOUT')
+ON CONFLICT DO NOTHING;
+
+-- GUEST gets all public menus
+INSERT INTO role_menus (role_id, menu_id)
+SELECT r.id, m.id FROM roles r, menus m
+WHERE r.code = 'GUEST'
+  AND m.code IN ('HOME','ARCHIVES','TAGS','CATEGORIES','LEISURE','MUSIC','MOVIES','WISHES','FRIENDS','MESSAGE_WALL','TOOLS','LINKS','ABOUT')
 ON CONFLICT DO NOTHING;
 
 -- ADMIN gets all public menus
@@ -141,6 +170,15 @@ ON CONFLICT (username) DO NOTHING;
 INSERT INTO user_roles (user_id, role_id)
 SELECT u.id, r.id FROM users u, roles r
 WHERE u.username = 'admin' AND r.code = 'SUPER_ADMIN'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO users (username, password, email, nickname, avatar, status)
+VALUES ('superadmin', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVKIUi', 'superadmin@example.com', 'Super Admin', NULL, 'ACTIVE')
+ON CONFLICT (username) DO NOTHING;
+
+INSERT INTO user_roles (user_id, role_id)
+SELECT u.id, r.id FROM users u, roles r
+WHERE u.username = 'superadmin' AND r.code = 'SUPER_ADMIN'
 ON CONFLICT DO NOTHING;
 
 -- ============================================================

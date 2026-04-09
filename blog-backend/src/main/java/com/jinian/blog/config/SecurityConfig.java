@@ -49,6 +49,7 @@ public class SecurityConfig {
                         // 公开接口 - 分类、标签
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/categories", "/categories/**").permitAll()
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/tags", "/tags/**").permitAll()
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/menus/public").permitAll()
                         // 公开接口 - 留言、许愿、友链
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/messages").permitAll()
                         .requestMatchers(org.springframework.http.HttpMethod.POST, "/messages").permitAll()

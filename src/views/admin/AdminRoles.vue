@@ -1,15 +1,46 @@
 <script setup lang="ts">
-import { ref, onMounted, reactive } from 'vue';
-import { Plus, Pencil, Trash2, X, Shield } from 'lucide-vue-next';
-import { getAdminRoles, createRole, updateRole, deleteRole } from '@/api/admin';
+import { ref, onMounted, reactive, computed } from 'vue';
+import { Plus, Pencil, Trash2, X, Shield, Settings } from 'lucide-vue-next';
+import { getAdminRoles, createRole, updateRole, deleteRole, getAdminMenus, getRoleMenus, updateRoleMenus } from '@/api/admin';
 import type { AdminRole } from '@/api/admin';
+import type { MenuResponse } from '@/api/blog';
 
 const roles = ref<AdminRole[]>([]);
 const loading = ref(false);
 const showModal = ref(false);
 const editing = ref<AdminRole | null>(null);
+const showMenusModal = ref(false);
+const menuLoading = ref(false);
+const savingMenus = ref(false);
+const menuRole = ref<AdminRole | null>(null);
+const menuTree = ref<MenuResponse[]>([]);
+const selectedMenuIds = ref<Set<number>>(new Set());
+const menuParentMap = ref<Record<number, number | null>>({});
 
 const form = reactive({ name: '', code: '', description: '' });
+
+const flattenedMenus = computed(() => {
+  const result: Array<MenuResponse & { depth: number }> = [];
+
+  const walk = (menus: MenuResponse[], depth: number) => {
+    menus.forEach((menu) => {
+      result.push({ ...menu, depth });
+      if (menu.children?.length) {
+        walk(menu.children, depth + 1);
+      }
+    });
+  };
+
+  walk(menuTree.value || [], 0);
+  return result;
+});
+
+const collectAncestorIds = (menuId: number, visited = new Set<number>()) => {
+  const parentId = menuParentMap.value[menuId];
+  if (parentId == null || visited.has(parentId)) return visited;
+  visited.add(parentId);
+  return collectAncestorIds(parentId, visited);
+};
 
 const fetchRoles = async () => {
   loading.value = true;
@@ -65,6 +96,78 @@ const handleDelete = async (role: AdminRole) => {
   }
 };
 
+const loadRoleMenus = async (role: AdminRole) => {
+  menuLoading.value = true;
+  try {
+    const [menus, roleMenuIds] = await Promise.all([
+      getAdminMenus(),
+      getRoleMenus(role.id),
+    ]);
+
+    menuTree.value = menus || [];
+    selectedMenuIds.value = new Set(roleMenuIds || []);
+
+    const parentMap: Record<number, number | null> = {};
+    const walk = (items: MenuResponse[], parentId: number | null) => {
+      items.forEach((item) => {
+        parentMap[item.id] = parentId;
+        if (item.children?.length) {
+          walk(item.children, item.id);
+        }
+      });
+    };
+    walk(menuTree.value, null);
+    menuParentMap.value = parentMap;
+
+    const expandedIds = new Set<number>(roleMenuIds || []);
+    (roleMenuIds || []).forEach((menuId) => {
+      collectAncestorIds(menuId).forEach((ancestorId) => expandedIds.add(ancestorId));
+    });
+    selectedMenuIds.value = expandedIds;
+  } catch {
+    menuTree.value = [];
+    selectedMenuIds.value = new Set();
+    menuParentMap.value = {};
+  } finally {
+    menuLoading.value = false;
+  }
+};
+
+const openMenuPermissions = async (role: AdminRole) => {
+  menuRole.value = role;
+  showMenusModal.value = true;
+  await loadRoleMenus(role);
+};
+
+const toggleMenu = (menuId: number, checked: boolean) => {
+  const next = new Set(selectedMenuIds.value);
+  if (checked) {
+    next.add(menuId);
+    collectAncestorIds(menuId).forEach((id) => next.add(id));
+  } else {
+    next.delete(menuId);
+  }
+  selectedMenuIds.value = next;
+};
+
+const handleMenuToggle = (menuId: number, event: Event) => {
+  toggleMenu(menuId, (event.target as HTMLInputElement).checked);
+};
+
+const saveRoleMenus = async () => {
+  if (!menuRole.value) return;
+  savingMenus.value = true;
+  try {
+    await updateRoleMenus(menuRole.value.id, Array.from(selectedMenuIds.value));
+    showMenusModal.value = false;
+    fetchRoles();
+  } catch {
+    // ignore
+  } finally {
+    savingMenus.value = false;
+  }
+};
+
 const roleColorClass = (code: string) => {
   if (code.includes('SUPER')) return 'bg-purple-100 text-purple-600';
   if (code.includes('ADMIN')) return 'bg-blue-100 text-blue-600';
@@ -101,6 +204,9 @@ const roleColorClass = (code: string) => {
             <Shield :size="18" />
           </div>
           <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+            <button @click="openMenuPermissions(role)" class="p-1.5 rounded-lg hover:bg-blue-50 text-gray-400 hover:text-[#49b1f5] transition-all">
+              <Settings :size="13" />
+            </button>
             <button @click="openEdit(role)" class="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-[#49b1f5] transition-all">
               <Pencil :size="13" />
             </button>
@@ -159,6 +265,58 @@ const roleColorClass = (code: string) => {
         <div class="flex gap-3 mt-6">
           <button @click="showModal = false" class="flex-1 py-2.5 rounded-xl border border-gray-100 text-sm text-gray-500 hover:bg-gray-50 transition-colors">取消</button>
           <button @click="handleSave" class="flex-1 py-2.5 rounded-xl bg-[#49b1f5] text-white text-sm font-medium hover:bg-[#3a9de8] transition-colors">保存</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Menu permissions modal -->
+    <div v-if="showMenusModal" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div class="absolute inset-0 bg-black/20 backdrop-blur-sm" @click="showMenusModal = false"></div>
+      <div class="relative bg-white rounded-2xl shadow-2xl border border-gray-100 p-6 w-full max-w-2xl max-h-[85vh] overflow-hidden flex flex-col">
+        <div class="flex items-center justify-between mb-5">
+          <div>
+            <h3 class="text-base font-bold text-[#2c3e50]">菜单权限</h3>
+            <p class="text-xs text-gray-400 mt-1">{{ menuRole?.name }} / {{ menuRole?.code }}</p>
+          </div>
+          <button @click="showMenusModal = false" class="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 transition-all">
+            <X :size="16" />
+          </button>
+        </div>
+
+        <div class="flex-1 overflow-y-auto pr-1">
+          <div v-if="menuLoading" class="space-y-3">
+            <div v-for="i in 6" :key="i" class="h-12 rounded-xl bg-gray-100 animate-pulse"></div>
+          </div>
+
+          <div v-else class="space-y-2">
+            <label
+              v-for="menu in flattenedMenus"
+              :key="menu.id"
+              class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-50 transition-colors cursor-pointer"
+              :style="{ paddingLeft: `${12 + menu.depth * 20}px` }"
+            >
+              <input
+                type="checkbox"
+                class="w-4 h-4 rounded border-gray-300 text-[#49b1f5] focus:ring-[#49b1f5]"
+                :checked="selectedMenuIds.has(menu.id)"
+                @change="handleMenuToggle(menu.id, $event)"
+              />
+              <span class="text-sm font-medium text-[#2c3e50]">{{ menu.name }}</span>
+              <span class="text-[10px] text-gray-400 font-mono">{{ menu.code }}</span>
+              <span v-if="menu.path" class="ml-auto text-[10px] text-gray-300 font-mono">{{ menu.path }}</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="flex gap-3 mt-6 pt-4 border-t border-gray-100">
+          <button @click="showMenusModal = false" class="flex-1 py-2.5 rounded-xl border border-gray-100 text-sm text-gray-500 hover:bg-gray-50 transition-colors">取消</button>
+          <button
+            @click="saveRoleMenus"
+            :disabled="savingMenus || menuLoading"
+            class="flex-1 py-2.5 rounded-xl bg-[#49b1f5] text-white text-sm font-medium hover:bg-[#3a9de8] transition-colors disabled:opacity-50"
+          >
+            {{ savingMenus ? '保存中...' : '保存菜单' }}
+          </button>
         </div>
       </div>
     </div>

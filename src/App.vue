@@ -1,5 +1,5 @@
 ﻿<script setup lang="ts">
-import { ref, onMounted, onUnmounted, computed } from 'vue';
+import { ref, onMounted, onUnmounted, computed, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import {
   Home,
@@ -16,11 +16,16 @@ import {
   X,
   ChevronDown,
   ChevronUp,
+  ChevronRight,
   TreeDeciduous,
   Users,
   PenLine,
+  MessageSquare,
+  Settings,
+  Shield,
+  FileText,
 } from 'lucide-vue-next';
-import { getArchives, getArticles, getCategories, getTags } from '@/api/blog';
+import { getArchives, getArticles, getCategories, getTags, getPublicMenus, getUserMenus } from '@/api/blog';
 import { useAuth } from '@/stores/auth';
 
 const router = useRouter();
@@ -53,6 +58,7 @@ const typeEffect = () => {
 const clickEffects = ref<{ id: number; x: number; y: number; text: string }[]>([]);
 let clickId = 0;
 const clickTexts = ['诗意', '远方', '热爱', '自由', '纯粹', '温柔', '明亮', '星辰', '大海', '山川', '岁月', '静好'];
+const route = useRoute();
 
 const handleGlobalClick = (e: MouseEvent) => {
   const id = clickId += 1;
@@ -63,7 +69,14 @@ const handleGlobalClick = (e: MouseEvent) => {
   }, 1000);
 };
 
-const navItems = [
+type NavItem = {
+  name: string;
+  icon: any;
+  link: string;
+  subItems?: NavItem[];
+};
+
+const fallbackNavItems = [
   { name: '主页', icon: Home, link: '/' },
   { name: '时间线', icon: Clock, link: '/archives' },
   { name: '标签', icon: Tag, link: '/tags' },
@@ -78,11 +91,69 @@ const navItems = [
     ],
   },
   { name: '许愿树', icon: TreeDeciduous, link: '/wishes' },
-  { name: 'Friends', icon: Users, link: '/friends' },
+  { name: '朋友地图', icon: Users, link: '/friends' },
   { name: '工具', icon: Wrench, link: '/tools' },
   { name: '友链', icon: LinkIcon, link: '/link' },
   { name: '关于', icon: User, link: '/about' },
 ];
+
+const navItems = ref<NavItem[]>(fallbackNavItems);
+
+const iconMap: Record<string, any> = {
+  Home,
+  Clock,
+  Tag,
+  LayoutGrid,
+  Music,
+  Film,
+  Wrench,
+  Link: LinkIcon,
+  User,
+  Users,
+  TreeDeciduous,
+  MessageSquare,
+  Settings,
+  Shield,
+  FileText,
+  PenLine,
+};
+
+const normalizeMenuItem = (menu: { name: string; path?: string; icon?: string; visible?: boolean; children?: any[] }): NavItem | null => {
+  if (menu.visible === false) return null;
+  const link = menu.path || '#';
+  if (link.startsWith('/admin')) return null;
+
+  const children = (menu.children || [])
+    .map((child) => normalizeMenuItem(child))
+    .filter((child): child is NavItem => Boolean(child));
+
+  return {
+    name: menu.name,
+    icon: iconMap[menu.icon || ''] || Home,
+    link,
+    subItems: children.length ? children : undefined,
+  };
+};
+
+const loadNavMenus = async () => {
+  try {
+    const menus = auth.isLoggedIn.value ? await getUserMenus() : await getPublicMenus();
+    const mapped = menus
+      .map((menu) => normalizeMenuItem(menu))
+      .filter((menu): menu is NavItem => Boolean(menu));
+    navItems.value = mapped.length ? mapped : fallbackNavItems;
+  } catch {
+    navItems.value = fallbackNavItems;
+  }
+};
+
+watch(() => auth.token.value, () => {
+  loadNavMenus();
+});
+
+watch(() => route.path, () => {
+  loadNavMenus();
+});
 
 const posts = ref<Array<{ title: string; date: string }>>([]);
 const sidebarArchives = ref<Array<{ name: string; count: number }>>([]);
@@ -147,7 +218,6 @@ const scrollToContent = () => {
   }
 };
 
-const route = useRoute();
 const isAdminRoute = computed(() => route.path.startsWith('/admin'));
 const isFullscreenRoute = computed(() =>
   route.path.startsWith('/admin') || route.path === '/login'
@@ -157,6 +227,7 @@ const isWriteRoute = computed(() => route.path === '/write' || route.path === '/
 onMounted(() => {
   typeEffect();
   loadSidebarData();
+  loadNavMenus();
 
   window.addEventListener('scroll', () => {
     isScrolled.value = window.scrollY > 50;
@@ -250,16 +321,6 @@ onUnmounted(() => {
           <Search :size="22" stroke-width="1.5" />
         </button>
 
-        <!-- 写文章 (logged in) -->
-        <router-link
-          v-if="auth.isLoggedIn.value"
-          to="/write"
-          class="flex items-center gap-2 px-4 py-2 rounded-full bg-[#49b1f5]/20 hover:bg-[#49b1f5] text-[#49b1f5] hover:text-white transition-all duration-300 text-sm font-semibold border border-[#49b1f5]/30 hover:border-transparent"
-        >
-          <PenLine :size="15" stroke-width="2" />
-          <span>写文章</span>
-        </router-link>
-
         <!-- 我 按钮：未登录→/login，已登录→/profile -->
         <router-link
           :to="auth.isLoggedIn.value ? '/profile' : '/login'"
@@ -347,15 +408,6 @@ onUnmounted(() => {
 
             <!-- Auth links for mobile -->
             <div class="pt-3 mt-3 border-t border-gray-200/50 space-y-1">
-              <router-link
-                v-if="auth.isLoggedIn.value"
-                to="/write"
-                @click="isMenuOpen = false"
-                class="flex items-center space-x-4 text-[#49b1f5] p-3 rounded-xl bg-[#49b1f5]/10 hover:bg-[#49b1f5]/20 transition-all"
-              >
-                <PenLine :size="16" stroke-width="2" />
-                <span class="font-medium tracking-widest uppercase text-xs">写文章</span>
-              </router-link>
               <!-- 我 → profile or login -->
               <router-link
                 :to="auth.isLoggedIn.value ? '/profile' : '/login'"
@@ -407,6 +459,26 @@ onUnmounted(() => {
       </div>
     </header>
 
+    <section v-if="route.path === '/' && auth.isLoggedIn.value" class="relative z-20 -mt-8 md:-mt-16 px-4 md:px-8 mx-auto max-w-7xl">
+      <router-link
+        to="/write"
+        class="group flex flex-col md:flex-row md:items-center justify-between gap-4 md:gap-8 rounded-[2rem] md:rounded-[2.5rem] border border-white/70 bg-white/85 backdrop-blur-xl px-6 py-5 md:px-8 md:py-6 shadow-[0_20px_60px_rgba(73,177,245,0.14)] hover:shadow-[0_30px_80px_rgba(73,177,245,0.22)] hover:-translate-y-1 transition-all duration-500"
+      >
+        <div class="flex items-center gap-4">
+          <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#49b1f5] to-[#3a9de8] flex items-center justify-center shadow-lg shadow-[#49b1f5]/30">
+            <PenLine :size="22" class="text-white" stroke-width="2" />
+          </div>
+          <div>
+            <h2 class="text-lg md:text-xl font-bold text-[#2c3e50]">写文档</h2>
+            <p class="text-sm text-gray-500">把内容直接写进后台，入口放在首页这里更顺手。</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2 text-[#49b1f5] font-semibold tracking-widest uppercase text-xs md:text-sm">
+          <span>进入编辑器</span>
+          <ChevronRight :size="16" class="group-hover:translate-x-1 transition-transform" />
+        </div>
+      </router-link>
+    </section>
     <!-- Main Content -->
     <main
       v-if="isWriteRoute || route.path === '/login'"

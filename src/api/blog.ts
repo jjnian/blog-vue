@@ -69,6 +69,19 @@ export interface WishItem {
   createdAt?: string;
 }
 
+export interface MenuResponse {
+  id: number;
+  parentId?: number | null;
+  name: string;
+  code: string;
+  path?: string;
+  icon?: string;
+  component?: string;
+  sortOrder?: number;
+  visible?: boolean;
+  children?: MenuResponse[];
+}
+
 export const getArticles = (params?: {
   page?: number;
   size?: number;
@@ -91,6 +104,9 @@ export const getArchives = () => apiGet<Array<[number, number]>>('/articles/arch
 export const getCategories = () => apiGet<Category[]>('/categories');
 export const getTags = () => apiGet<Tag[]>('/tags');
 export const getLinks = () => apiGet<LinkItem[]>('/links');
+
+export const getPublicMenus = () => apiGet<MenuResponse[]>('/menus/public');
+export const getUserMenus = () => apiGet<MenuResponse[]>('/menus/user');
 
 export const getMessages = (page = 1, size = 20) =>
   apiGet<PageResponse<MessageItem>>(`/messages?page=${page}&size=${size}`);

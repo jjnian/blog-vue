@@ -20,7 +20,27 @@ public interface MenuService {
     List<MenuResponse> getAllMenus();
 
     /**
+     * 获取公共菜单树
+     */
+    List<MenuResponse> getPublicMenus();
+
+    /**
+     * 根据角色编码获取菜单树
+     */
+    List<MenuResponse> getMenusByRoleCode(String roleCode);
+
+    /**
      * 获取菜单详情
      */
     MenuResponse getMenuById(Long id);
+
+    /**
+     * 获取角色已分配的菜单 ID
+     */
+    List<Long> getMenuIdsByRoleId(Long roleId);
+
+    /**
+     * 更新角色的菜单分配
+     */
+    void updateRoleMenus(Long roleId, List<Long> menuIds);
 }

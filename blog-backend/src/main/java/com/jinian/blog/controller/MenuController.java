@@ -29,6 +29,12 @@ public class MenuController {
         return Result.success(menuService.getUserMenus(userId));
     }
 
+    @Operation(summary = "获取公共菜单树")
+    @GetMapping("/public")
+    public Result<List<MenuResponse>> getPublicMenus() {
+        return Result.success(menuService.getPublicMenus());
+    }
+
     @Operation(summary = "获取所有菜单树")
     @GetMapping
     public Result<List<MenuResponse>> getAllMenus() {
