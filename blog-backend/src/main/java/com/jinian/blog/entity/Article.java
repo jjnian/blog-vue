@@ -63,7 +63,7 @@ public class Article {
      * 标签列表 (非数据库字段)
      */
     @TableField(exist = false)
-    private List<Tag> tags;
+    private List<TagEntity> tagEntities;
 
     /**
      * 作者信息 (非数据库字段)

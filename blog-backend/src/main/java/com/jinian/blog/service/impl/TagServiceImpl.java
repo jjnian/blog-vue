@@ -3,7 +3,7 @@ package com.jinian.blog.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.jinian.blog.common.exception.ResourceNotFoundException;
 import com.jinian.blog.dto.response.TagResponse;
-import com.jinian.blog.entity.Tag;
+import com.jinian.blog.entity.TagEntity;
 import com.jinian.blog.mapper.TagMapper;
 import com.jinian.blog.service.TagService;
 import lombok.RequiredArgsConstructor;
@@ -24,9 +24,9 @@ public class TagServiceImpl implements TagService {
 
     @Override
     public List<TagResponse> getAllTags() {
-        LambdaQueryWrapper<Tag> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(Tag::getDeleted, 0)
-               .orderByAsc(Tag::getName);
+        LambdaQueryWrapper<TagEntity> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(TagEntity::getDeleted, 0)
+               .orderByAsc(TagEntity::getName);
 
         return tagMapper.selectList(wrapper).stream()
                 .map(this::toResponse)
@@ -35,49 +35,49 @@ public class TagServiceImpl implements TagService {
 
     @Override
     public TagResponse getTagById(Long id) {
-        Tag tag = tagMapper.selectById(id);
-        if (tag == null || tag.getDeleted() == 1) {
+        TagEntity tagEntity = tagMapper.selectById(id);
+        if (tagEntity == null || tagEntity.getDeleted() == 1) {
             throw new ResourceNotFoundException("标签", id);
         }
-        return toResponse(tag);
+        return toResponse(tagEntity);
     }
 
     @Override
-    public TagResponse createTag(Tag tag) {
-        tag.setCreatedAt(LocalDateTime.now());
-        tag.setArticleCount(0);
-        tagMapper.insert(tag);
-        return toResponse(tag);
+    public TagResponse createTag(TagEntity tagEntity) {
+        tagEntity.setCreatedAt(LocalDateTime.now());
+        tagEntity.setArticleCount(0);
+        tagMapper.insert(tagEntity);
+        return toResponse(tagEntity);
     }
 
     @Override
-    public TagResponse updateTag(Long id, Tag tag) {
-        Tag existing = tagMapper.selectById(id);
+    public TagResponse updateTag(Long id, TagEntity tagEntity) {
+        TagEntity existing = tagMapper.selectById(id);
         if (existing == null || existing.getDeleted() == 1) {
             throw new ResourceNotFoundException("标签", id);
         }
-        tag.setId(id);
-        tagMapper.updateById(tag);
+        tagEntity.setId(id);
+        tagMapper.updateById(tagEntity);
         return toResponse(tagMapper.selectById(id));
     }
 
     @Override
     public void deleteTag(Long id) {
-        Tag tag = tagMapper.selectById(id);
-        if (tag == null) {
+        TagEntity tagEntity = tagMapper.selectById(id);
+        if (tagEntity == null) {
             throw new ResourceNotFoundException("标签", id);
         }
         tagMapper.deleteById(id);
     }
 
-    private TagResponse toResponse(Tag tag) {
+    private TagResponse toResponse(TagEntity tagEntity) {
         return TagResponse.builder()
-                .id(tag.getId())
-                .name(tag.getName())
-                .slug(tag.getSlug())
-                .color(tag.getColor())
-                .articleCount(tag.getArticleCount())
-                .createdAt(tag.getCreatedAt())
+                .id(tagEntity.getId())
+                .name(tagEntity.getName())
+                .slug(tagEntity.getSlug())
+                .color(tagEntity.getColor())
+                .articleCount(tagEntity.getArticleCount())
+                .createdAt(tagEntity.getCreatedAt())
                 .build();
     }
 }

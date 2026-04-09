@@ -1,34 +1,25 @@
 ﻿<script setup lang="ts">
-import { ref, onMounted, onUnmounted, nextTick, watch } from 'vue';
+import { ref, onMounted, onUnmounted } from 'vue';
 import { useRoute } from 'vue-router';
-import { 
-  Home, 
-  Clock, 
-  Tag, 
-  LayoutGrid, 
-  Music, 
-  Film, 
-  Wrench, 
-  Link as LinkIcon, 
-  User, 
-  Search, 
-  Menu, 
+import {
+  Home,
+  Clock,
+  Tag,
+  LayoutGrid,
+  Music,
+  Film,
+  Wrench,
+  Link as LinkIcon,
+  User,
+  Search,
+  Menu,
   X,
   ChevronDown,
-  Github,
-  Mail,
-  Twitter,
-  ExternalLink,
   ChevronUp,
-  Heart,
-  Calendar,
-  Eye,
-  MessageCircle,
-  ArrowRight,
   TreeDeciduous,
-  MessageSquare,
-  Users
+  Users,
 } from 'lucide-vue-next';
+import { getArchives, getArticles, getCategories, getTags } from '@/api/blog';
 
 const isMenuOpen = ref(false);
 const isScrolled = ref(false);
@@ -36,15 +27,14 @@ const isSearchOpen = ref(false);
 const showBackToTop = ref(false);
 const scrollProgress = ref(0);
 
-// Typing effect state
 const typedText = ref('');
-const fullText = '鍋氫釜涓€涓共鍑€鐨勪汉';
+const fullText = '做一个干净的人';
 let typingIndex = 0;
 
 const typeEffect = () => {
   if (typingIndex < fullText.length) {
     typedText.value += fullText.charAt(typingIndex);
-    typingIndex++;
+    typingIndex += 1;
     setTimeout(typeEffect, 200);
   } else {
     setTimeout(() => {
@@ -55,51 +45,91 @@ const typeEffect = () => {
   }
 };
 
-// Click effect state
 const clickEffects = ref<{ id: number; x: number; y: number; text: string }[]>([]);
 let clickId = 0;
-const clickTexts = ['璇楁剰', '杩滄柟', '鐑埍', '鑷敱', '绾补', '娓╂煍', '鏄庝寒', '鏄熻景', '澶ф捣', '灞卞窛', '宀佹湀', '闈欏ソ'];
+const clickTexts = ['诗意', '远方', '热爱', '自由', '纯粹', '温柔', '明亮', '星辰', '大海', '山川', '岁月', '静好'];
 
 const handleGlobalClick = (e: MouseEvent) => {
-  const id = clickId++;
+  const id = clickId += 1;
   const text = clickTexts[id % clickTexts.length];
   clickEffects.value.push({ id, x: e.clientX, y: e.clientY, text });
   setTimeout(() => {
-    clickEffects.value = clickEffects.value.filter(effect => effect.id !== id);
+    clickEffects.value = clickEffects.value.filter((effect) => effect.id !== id);
   }, 1000);
 };
 
 const navItems = [
-  { name: '涓婚〉', icon: Home, link: '/' },
-  { name: '鏃堕棿绾?, icon: Clock, link: '/archives' },
-  { name: '鏍囩', icon: Tag, link: '/tags' },
-  { name: '鍒嗙被', icon: LayoutGrid, link: '/categories' },
-  { 
-    name: '浼戦棽', 
-    icon: Music, 
+  { name: '主页', icon: Home, link: '/' },
+  { name: '时间线', icon: Clock, link: '/archives' },
+  { name: '标签', icon: Tag, link: '/tags' },
+  { name: '分类', icon: LayoutGrid, link: '/categories' },
+  {
+    name: '休闲',
+    icon: Music,
     link: '#',
     subItems: [
-      { name: '闊充箰', icon: Music, link: '/music' },
-      { name: '鐢靛奖', icon: Film, link: '/movies' }
-    ] 
+      { name: '音乐', icon: Music, link: '/music' },
+      { name: '电影', icon: Film, link: '/movies' },
+    ],
   },
-  { name: '璁告効鏍?, icon: TreeDeciduous, link: '/wishes' },
-  
+  { name: '许愿树', icon: TreeDeciduous, link: '/wishes' },
   { name: 'Friends', icon: Users, link: '/friends' },
-  { name: '宸ュ叿', icon: Wrench, link: '/tools' },
-  { name: '鍙嬮摼', icon: LinkIcon, link: '/link' },
-  { name: '鍏充簬', icon: User, link: '/about' }
+  { name: '工具', icon: Wrench, link: '/tools' },
+  { name: '友链', icon: LinkIcon, link: '/link' },
+  { name: '关于', icon: User, link: '/about' },
 ];
 
-const posts = [
-  { title: 'MySQL 8.0 娣卞害瀹夎鎸囧崡', date: '2024-10-13', link: '/2024/10/13/MySQL8.0瀹夎/', excerpt: '鎺㈢储 MySQL 8.0 鐨勫畨瑁呰壓鏈紝浠?environment 閰嶇疆鍒版€ц兘浼樺寲锛屼负浣犵殑鏁版嵁涔嬫梾濂犲畾鍧氬疄鍩虹銆?, views: 1240, comments: 12, category: '鏁版嵁搴?, tags: ['MySQL', 'DBA'] },
-  { title: 'Spring AOP锛氬垏闈㈢紪绋嬬殑榄呭姏', date: '2023-07-16', link: '/2023/07/16/spring-aop/', excerpt: '娣卞叆鐞嗚В Spring AOP 鐨勬牳蹇冨摬瀛︼紝璁╀綘鐨勪唬鐮佸湪瑙ｈ€︿笌澶嶇敤涔嬮棿鎵惧埌瀹岀編鐨勫钩琛°€?, views: 856, comments: 8, category: '鍚庣', tags: ['Spring', 'Java'] },
-  { title: 'Java 铏氭嫙鏈猴細鍐呭瓨涓庢€ц兘鐨勪氦鍝嶄箰', date: '2023-06-24', link: '/2023/06/24/jvm/', excerpt: '鎻紑 JVM 鐨勭绉橀潰绾憋紝鎺㈢储鍐呭瓨妯″瀷涓庡瀮鍦惧洖鏀剁殑寰嬪姩锛岃浣犵殑 Java 搴旂敤璧疯垶銆?, views: 2105, comments: 24, category: '鍚庣', tags: ['JVM', 'Java'] },
-  { title: 'PostgreSQL锛氬叧绯诲瀷鏁版嵁搴撶殑浼橀泤瀹炶返', date: '2023-06-23', link: '/2023/06/23/pgsql/', excerpt: '鍦?PostgreSQL 鐨勪笘鐣岄噷锛屾瘡涓€鏉℃煡璇㈤兘鏄竴娆′紭闆呯殑瀵硅瘽锛屾瘡涓€寮犺〃閮芥槸涓€涓粨鏋勫寲鐨勬晠浜嬨€?, views: 942, comments: 15, category: '鏁版嵁搴?, tags: ['PostgreSQL', 'SQL'] },
-  { title: 'Dockerfile锛氭瀯寤哄鍣ㄥ寲涓栫晫鐨勮摑鍥?, date: '2023-06-17', link: '/2023/06/17/dockerfile/', excerpt: '瀛︿範缂栧啓楂樻晥鐨?Dockerfile锛屽皢浣犵殑搴旂敤鎵撳寘鎴愯交閲忕骇鐨勮壓鏈搧锛屽湪浜戠鑷敱椋炵繑銆?, views: 1560, comments: 19, category: 'DevOps', tags: ['Docker', 'Cloud'] },
-  { title: '绾攼閼細鍦ㄤ唬鐮佷笌鐢熸椿涔嬮棿瀵绘壘璇楁剰', date: '2023-06-14', link: '/2023/06/14/first/', excerpt: '杩欐槸鎴戠殑绗竴绡囬殢绗旓紝璁板綍閭ｄ簺鍦ㄥ睆骞曞墠闂儊鐨勭伒鎰燂紝浠ュ強鍦ㄧ敓娲婚噷娴佹穼鐨勬俯鏆栥€?, views: 3200, comments: 45, category: '闅忕瑪', tags: ['鐢熸椿', '鎰熸偀'] },
-  { title: 'Hello Hexo锛氬紑鍚竴娈佃瘲鎰忕殑鍗氬涔嬫梾', date: '2023-06-13', link: '/2023/06/13/hello-world/', excerpt: '娆㈣繋鏉ュ埌鎴戠殑鏁板瓧鑺卞洯銆傚湪杩欓噷锛屾垜灏嗙敤鏂囧瓧鎾锛岀敤浠ｇ爜娴囩亴锛岄潤寰呯伒鎰熺殑缁芥斁銆?, views: 1100, comments: 5, category: '闅忕瑪', tags: ['Hexo', 'Blog'] }
-];
+const posts = ref<Array<{ title: string; date: string }>>([]);
+const sidebarArchives = ref<Array<{ name: string; count: number }>>([]);
+const sidebarCategories = ref<Array<{ name: string; count: number }>>([]);
+const sidebarTags = ref<string[]>([]);
+const articleTotal = ref(0);
+const tagTotal = ref(0);
+const categoryTotal = ref(0);
+
+const formatDate = (value?: string) => {
+  if (!value) return '-';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return date.toLocaleDateString('zh-CN');
+};
+
+const loadSidebarData = async () => {
+  try {
+    const [articlePage, tagList, categoryList, archives] = await Promise.all([
+      getArticles({ page: 1, size: 10, status: 'PUBLISHED' }),
+      getTags(),
+      getCategories(),
+      getArchives(),
+    ]);
+
+    articleTotal.value = Number(articlePage.total || 0);
+    tagTotal.value = tagList.length;
+    categoryTotal.value = categoryList.length;
+
+    posts.value = (articlePage.records || []).map((post) => ({
+      title: post.title,
+      date: formatDate(post.publishedAt || post.createdAt),
+    }));
+
+    sidebarArchives.value = (archives || []).slice(0, 6).map((item) => ({
+      name: `${item[0]}-${String(item[1]).padStart(2, '0')}`,
+      count: 1,
+    }));
+
+    sidebarCategories.value = categoryList.map((cat) => ({
+      name: cat.name,
+      count: Number(cat.articleCount || 0),
+    }));
+
+    sidebarTags.value = tagList.slice(0, 24).map((tag) => tag.name);
+  } catch {
+    posts.value = [];
+    sidebarArchives.value = [];
+    sidebarCategories.value = [];
+    sidebarTags.value = [];
+  }
+};
 
 const scrollToTop = () => {
   window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -116,27 +146,28 @@ const route = useRoute();
 
 onMounted(() => {
   typeEffect();
+  loadSidebarData();
+
   window.addEventListener('scroll', () => {
     isScrolled.value = window.scrollY > 50;
     showBackToTop.value = window.scrollY > 500;
 
-    // Calculate scroll progress
     const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
     const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
     scrollProgress.value = (winScroll / height) * 100;
   });
+
   window.addEventListener('click', handleGlobalClick);
 
-  // Intersection Observer for reveal animations
   const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
+    entries.forEach((entry) => {
       if (entry.isIntersecting) {
         entry.target.classList.add('visible');
       }
     });
   }, { threshold: 0.1 });
 
-  document.querySelectorAll('.reveal-animation').forEach(el => {
+  document.querySelectorAll('.reveal-animation').forEach((el) => {
     observer.observe(el);
   });
 });
@@ -145,7 +176,6 @@ onUnmounted(() => {
   window.removeEventListener('click', handleGlobalClick);
 });
 </script>
-
 <template>
   <div class="min-h-screen font-sans selection:bg-[#49b1f5] selection:text-white relative bg-[#f8fafc]">
     <!-- Scroll Progress Bar -->
@@ -353,15 +383,15 @@ onUnmounted(() => {
           
           <div class="grid grid-cols-3 gap-10 mb-12">
             <div class="hover:text-[#49b1f5] transition-all duration-500 cursor-pointer">
-              <div class="font-serif font-bold text-3xl">7</div>
+              <div class="font-serif font-bold text-3xl">{{ articleTotal }}</div>
               <div class="text-[9px] text-gray-400 uppercase tracking-[0.2em] mt-2 font-bold">鏂囩珷</div>
             </div>
             <div class="hover:text-[#49b1f5] transition-all duration-500 cursor-pointer">
-              <div class="font-serif font-bold text-3xl">12</div>
+              <div class="font-serif font-bold text-3xl">{{ tagTotal }}</div>
               <div class="text-[9px] text-gray-400 uppercase tracking-[0.2em] mt-2 font-bold">鏍囩</div>
             </div>
             <div class="hover:text-[#49b1f5] transition-all duration-500 cursor-pointer">
-              <div class="font-serif font-bold text-3xl">5</div>
+              <div class="font-serif font-bold text-3xl">{{ categoryTotal }}</div>
               <div class="text-[9px] text-gray-400 uppercase tracking-[0.2em] mt-2 font-bold">鍒嗙被</div>
             </div>
           </div>
@@ -370,7 +400,7 @@ onUnmounted(() => {
             <svg viewBox="0 0 1024 1024" class="w-5 h-5" fill="currentColor">
               <path d="M682.666667 341.333333c-17.066667 0-34.133333 4.266667-51.2 8.533334-34.133333-106.666667-140.8-179.2-268.8-179.2-153.6 0-277.333333 106.666667-277.333334 238.933333 0 72.533333 38.4 136.533333 102.4 183.466667l-25.6 76.8 89.6-42.666667c34.133333 12.8 68.266667 17.066667 106.666667 17.066667 17.066667 0 34.133333-4.266667 51.2-8.533334 34.133333 106.666667 140.8 179.2 268.8 179.2 153.6 0 277.333333-106.666667 277.333334-238.933333s-123.733333-234.666667-273.066667-234.666667z m-153.6 153.6c-21.333333 0-38.4-17.066667-38.4-38.4s17.066667-38.4 38.4-38.4 38.4 17.066667 38.4 38.4-17.066667 38.4-38.4 38.4z m187.733333 0c-21.333333 0-38.4-17.066667-38.4-38.4s17.066667-38.4 38.4-38.4 38.4 17.066667 38.4 38.4-17.066667 38.4-38.4 38.4z m-384-170.666666c-21.333333 0-38.4-17.066667-38.4-38.4s17.066667-38.4 38.4-38.4 38.4 17.066667 38.4 38.4-17.066667 38.4-38.4 38.4z m187.733333 0c-21.333333 0-38.4-17.066667-38.4-38.4s17.066667-38.4 38.4-38.4 38.4 17.066667 38.4 38.4-17.066667 38.4-38.4 38.4z"></path>
             </svg>
-            <span>鍏虫敞鎴?/span>
+            <span>关注我</span>
           </button>
           
           <div class="flex justify-center space-x-10 text-gray-400">
@@ -391,7 +421,7 @@ onUnmounted(() => {
         <div class="glass rounded-[3rem] p-12 hover:shadow-2xl hover:shadow-[#49b1f5]/20 transition-all duration-700 border border-white/60 hover:border-[#49b1f5]/30">
           <div class="flex items-center space-x-4 mb-10 pb-5 border-b border-gray-100/50">
             <Clock :size="24" class="text-[#49b1f5]" stroke-width="1.5" />
-            <h3 class="font-serif font-bold text-2xl">鏈€鏂版枃绔?/h3>
+            <h3 class="font-serif font-bold text-2xl">最新文章</h3>
           </div>
           <div class="space-y-10">
             <div v-for="post in posts.slice(0, 5)" :key="post.title" class="flex items-center space-x-6 group cursor-pointer">
@@ -418,11 +448,7 @@ onUnmounted(() => {
             <h3 class="font-serif font-bold text-2xl">褰掓。</h3>
           </div>
           <div class="space-y-5">
-            <div v-for="archive in [
-              { name: '鍗佹湀 2024', count: 1 },
-              { name: '涓冩湀 2023', count: 1 },
-              { name: '鍏湀 2023', count: 5 }
-            ]" :key="archive.name" class="flex justify-between items-center text-sm hover:bg-blue-50/50 p-4 rounded-[1.5rem] transition-all duration-500 cursor-pointer group">
+            <div v-for="archive in sidebarArchives" :key="archive.name" class="flex justify-between items-center text-sm hover:bg-blue-50/50 p-4 rounded-[1.5rem] transition-all duration-500 cursor-pointer group">
               <span class="group-hover:translate-x-3 transition-transform font-bold tracking-wide">{{ archive.name }}</span>
               <span class="bg-gray-100/50 text-gray-400 px-4 py-1.5 rounded-2xl text-[10px] font-black group-hover:bg-[#49b1f5] group-hover:text-white transition-all duration-500">{{ archive.count }}</span>
             </div>
@@ -436,12 +462,7 @@ onUnmounted(() => {
             <h3 class="font-serif font-bold text-2xl">鍒嗙被</h3>
           </div>
           <div class="space-y-5">
-            <div v-for="cat in [
-              { name: '鏁版嵁搴?, count: 2 },
-              { name: '鍚庣', count: 2 },
-              { name: 'DevOps', count: 1 },
-              { name: '闅忕瑪', count: 2 }
-            ]" :key="cat.name" class="flex justify-between items-center text-sm hover:bg-blue-50/50 p-4 rounded-[1.5rem] transition-all duration-500 cursor-pointer group">
+            <div v-for="cat in sidebarCategories" :key="cat.name" class="flex justify-between items-center text-sm hover:bg-blue-50/50 p-4 rounded-[1.5rem] transition-all duration-500 cursor-pointer group">
               <span class="group-hover:translate-x-3 transition-transform font-bold tracking-wide">{{ cat.name }}</span>
               <span class="bg-gray-100/50 text-gray-400 px-4 py-1.5 rounded-2xl text-[10px] font-black group-hover:bg-[#49b1f5] group-hover:text-white transition-all duration-500">{{ cat.count }}</span>
             </div>
@@ -455,7 +476,7 @@ onUnmounted(() => {
             <h3 class="font-serif font-bold text-2xl">鏍囩</h3>
           </div>
           <div class="flex flex-wrap gap-3">
-            <span v-for="tag in ['Java', 'Spring', 'MySQL', 'Docker', 'PostgreSQL', 'Hexo', '鐢熸椿', 'DBA', 'SQL', 'Cloud', '鎰熸偀', 'Blog']" :key="tag" class="text-[10px] font-bold tracking-widest uppercase px-5 py-2 glass rounded-full text-gray-400 hover:text-[#49b1f5] hover:scale-110 transition-all duration-500 cursor-pointer">
+            <span v-for="tag in sidebarTags" :key="tag" class="text-[10px] font-bold tracking-widest uppercase px-5 py-2 glass rounded-full text-gray-400 hover:text-[#49b1f5] hover:scale-110 transition-all duration-500 cursor-pointer">
               {{ tag }}
             </span>
           </div>
@@ -570,6 +591,7 @@ html {
   scroll-behavior: smooth;
 }
 </style>
+
 
 
 

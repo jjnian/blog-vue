@@ -1,20 +1,26 @@
 <script setup lang="ts">
+import { onMounted, ref } from 'vue';
 import { Tag } from 'lucide-vue-next';
+import { getTags } from '@/api/blog';
 
-const tags = [
-  { name: 'Java', count: 12, size: 'text-3xl', color: 'text-red-400' },
-  { name: 'Spring', count: 8, size: 'text-2xl', color: 'text-green-500' },
-  { name: 'MySQL', count: 15, size: 'text-4xl', color: 'text-blue-500' },
-  { name: 'Docker', count: 5, size: 'text-xl', color: 'text-cyan-500' },
-  { name: 'PostgreSQL', count: 3, size: 'text-lg', color: 'text-indigo-500' },
-  { name: 'Hexo', count: 2, size: 'text-base', color: 'text-purple-500' },
-  { name: '生活', count: 20, size: 'text-5xl', color: 'text-pink-400' },
-  { name: 'DBA', count: 4, size: 'text-lg', color: 'text-yellow-600' },
-  { name: 'SQL', count: 7, size: 'text-xl', color: 'text-orange-500' },
-  { name: 'Cloud', count: 6, size: 'text-xl', color: 'text-sky-400' },
-  { name: '感悟', count: 18, size: 'text-4xl', color: 'text-rose-400' },
-  { name: 'Blog', count: 9, size: 'text-2xl', color: 'text-emerald-500' }
-];
+const sizes = ['text-base', 'text-lg', 'text-xl', 'text-2xl', 'text-3xl', 'text-4xl'];
+const colors = ['text-red-400', 'text-green-500', 'text-blue-500', 'text-cyan-500', 'text-indigo-500', 'text-purple-500', 'text-pink-400', 'text-yellow-600', 'text-orange-500', 'text-sky-400', 'text-rose-400', 'text-emerald-500'];
+
+const tags = ref<Array<{ name: string; count: number; size: string; color: string }>>([]);
+
+onMounted(async () => {
+  try {
+    const list = await getTags();
+    tags.value = list.map((item, index) => ({
+      name: item.name,
+      count: Number(item.articleCount || 1),
+      size: sizes[index % sizes.length],
+      color: colors[index % colors.length],
+    }));
+  } catch {
+    tags.value = [];
+  }
+});
 </script>
 
 <template>

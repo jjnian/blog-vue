@@ -14,6 +14,8 @@ public class MessageRequest {
 
     private String guestName;
 
+    private String guestAvatar;
+
     private String animationType;
 
     private String color;

@@ -1,5 +1,6 @@
 package com.jinian.blog.util;
 
+import com.jinian.blog.security.UserDetailsImpl;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 

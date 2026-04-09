@@ -2,8 +2,10 @@
 import { ref, onMounted, onUnmounted } from 'vue';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import { getWishes } from '@/api/blog';
 
 const canvasContainer = ref<HTMLElement | null>(null);
+const wishesCount = ref(0);
 
 let scene: THREE.Scene;
 let camera: THREE.PerspectiveCamera;
@@ -271,6 +273,13 @@ const animate = () => {
 // Cleanup
 onMounted(() => {
   initScene();
+  getWishes(1, 50)
+    .then((page) => {
+      wishesCount.value = page.records.length;
+    })
+    .catch(() => {
+      wishesCount.value = 0;
+    });
 });
 
 onUnmounted(() => {

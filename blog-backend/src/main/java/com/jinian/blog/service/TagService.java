@@ -1,7 +1,7 @@
 package com.jinian.blog.service;
 
 import com.jinian.blog.dto.response.TagResponse;
-import com.jinian.blog.entity.Tag;
+import com.jinian.blog.entity.TagEntity;
 
 import java.util.List;
 
@@ -23,12 +23,12 @@ public interface TagService {
     /**
      * 创建标签
      */
-    TagResponse createTag(Tag tag);
+    TagResponse createTag(TagEntity tagEntity);
 
     /**
      * 更新标签
      */
-    TagResponse updateTag(Long id, Tag tag);
+    TagResponse updateTag(Long id, TagEntity tagEntity);
 
     /**
      * 删除标签

@@ -1,6 +1,7 @@
-<script setup lang="ts">
+﻿<script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue';
 import { Send } from 'lucide-vue-next';
+import { createMessage, getMessages, type MessageItem } from '@/api/blog';
 
 interface Danmu {
   id: number;
@@ -22,80 +23,48 @@ interface Danmu {
 const danmuList = ref<Danmu[]>([]);
 const nextId = ref(0);
 const userInput = ref('');
+const messages = ref<MessageItem[]>([]);
 
-const messages = [
-  "没有源码我很难分析啊",
-  "我在哪",
-  "大佬真厉害",
-  "牛牛牛",
-  "这个页面真的棒",
-  "歪比巴卜",
-  "网页真漂亮",
-  "👍",
-  "好看的紧",
-  "牛",
-  "监控",
-  "加油！",
-  "牛啊",
-  "好强，属实好看",
-  "真的很牛逼，2026.04.07",
-  "有点意思",
-  "hahaha",
-  "厉害！",
-  "网站",
-  "弹幕功能很强！",
-  "大佬页",
-  "这个弹幕真的很好玩",
-  "我超",
-  "漂亮",
-  "路过",
-  "666666",
-  "omg",
-  "你好啊",
-  "云想衣裳花想容，春风拂槛露华浓。",
-  "两情若是久长时，又岂在朝朝暮暮。",
-  "人生若只如初见，何事秋风悲画扇。",
-  "众里寻他千百度，蓦然回首，那人却在，灯火阑珊处。",
-  "落霞与孤鹜齐飞，秋水共长天一色。",
-  "星垂平野阔，月涌大江流。",
-  "海上生明月，天涯共此时。",
-  "大漠孤烟直，长河落日圆。"
+const fallbackMessages = [
+  '没有源码我很难分析啊',
+  '这个页面真的很棒',
+  '加油！',
+  '弹幕功能很强',
+  '海上生明月，天涯共此时。',
 ];
 
 const glowColors = [
   'rgba(255, 255, 255, 0.2)',
-  'rgba(147, 197, 253, 0.3)', // blue
-  'rgba(167, 243, 208, 0.3)', // green
-  'rgba(253, 164, 175, 0.3)', // rose
-  'rgba(216, 180, 254, 0.3)', // purple
+  'rgba(147, 197, 253, 0.3)',
+  'rgba(167, 243, 208, 0.3)',
+  'rgba(253, 164, 175, 0.3)',
+  'rgba(216, 180, 254, 0.3)',
 ];
 
-const animationClasses = [
-  'danmu-scroll', 
-  'danmu-float', 
-  'danmu-zoom', 
-  'danmu-swing',
-  'danmu-bounce',
-  'danmu-spiral',
-  'danmu-flip',
-  'danmu-pulse',
-  'danmu-wavy'
-];
+const animationClasses = ['danmu-scroll', 'danmu-float', 'danmu-zoom', 'danmu-swing', 'danmu-bounce', 'danmu-spiral', 'danmu-flip', 'danmu-pulse', 'danmu-wavy'];
 const timingFunctions = ['linear', 'ease-in-out', 'cubic-bezier(0.4, 0, 0.2, 1)'];
 
-const createDanmu = (customText?: string) => {
-  const text = customText || messages[Math.floor(Math.random() * messages.length)];
-  const avatar = `https://picsum.photos/seed/${Math.random()}/100/100`;
-  
-  // Randomize animation type
+const buildAvatar = (seed: string) => `https://picsum.photos/seed/${encodeURIComponent(seed)}/100/100`;
+
+const randomMessage = () => {
+  if (messages.value.length > 0) {
+    const picked = messages.value[Math.floor(Math.random() * messages.value.length)];
+    return {
+      text: picked.content,
+      avatar: picked.guestAvatar || buildAvatar(picked.guestName || picked.content || String(picked.id)),
+    };
+  }
+  const text = fallbackMessages[Math.floor(Math.random() * fallbackMessages.length)];
+  return { text, avatar: buildAvatar(text) };
+};
+
+const createDanmu = (customText?: string, customAvatar?: string) => {
+  const source = customText ? { text: customText, avatar: customAvatar || buildAvatar(customText) } : randomMessage();
   const animationClass = animationClasses[Math.floor(Math.random() * animationClasses.length)];
   const timingFunction = timingFunctions[Math.floor(Math.random() * timingFunctions.length)];
-  
-  // Always spawn from right side, then travel to left
-  let top = `${Math.random() * 90 + 5}%`;
+  const top = `${Math.random() * 90 + 5}%`;
   const travelX = `${Math.random() * 40 + 220}vw`;
-  
-  // Adjust duration based on type
+
   let durationBase = 12;
   if (animationClass === 'danmu-float') durationBase = 20;
   if (animationClass === 'danmu-zoom') durationBase = 15;
@@ -105,57 +74,76 @@ const createDanmu = (customText?: string) => {
   if (animationClass === 'danmu-flip') durationBase = 12;
   if (animationClass === 'danmu-pulse') durationBase = 16;
   if (animationClass === 'danmu-wavy') durationBase = 14;
-  
+
   const duration = `${Math.random() * 15 + durationBase}s`;
-  const delay = `0s`;
-  
+  const delay = '0s';
   const fontSize = customText ? '1.2rem' : `${Math.random() * 0.3 + 0.9}rem`;
   const opacity = customText ? 1 : Math.random() * 0.2 + 0.6;
   const glowColor = customText ? 'rgba(255, 255, 255, 0.5)' : glowColors[Math.floor(Math.random() * glowColors.length)];
   const zIndex = customText ? 50 : Math.floor(Math.random() * 10) + 10;
   const wobbleIntensity = Math.random() * 30 - 15;
-  
-  const id = nextId.value++;
-  danmuList.value.push({ 
-    id, text, avatar, top, duration, delay, 
-    fontSize, opacity, glowColor, zIndex,
-    animationClass, wobbleIntensity, travelX, timingFunction
+
+  const id = nextId.value += 1;
+  danmuList.value.push({
+    id,
+    text: source.text,
+    avatar: source.avatar,
+    top,
+    duration,
+    delay,
+    fontSize,
+    opacity,
+    glowColor,
+    zIndex,
+    animationClass,
+    wobbleIntensity,
+    travelX,
+    timingFunction,
   });
-  
-  // Cleanup after animation
+
   const cleanupDelay = Math.ceil(parseFloat(duration) * 1000) + 2500;
   setTimeout(() => {
-    danmuList.value = danmuList.value.filter(d => d.id !== id);
+    danmuList.value = danmuList.value.filter((d) => d.id !== id);
   }, cleanupDelay);
 };
 
-const sendDanmu = () => {
-  if (!userInput.value.trim()) return;
-  createDanmu(userInput.value);
+const sendDanmu = async () => {
+  const content = userInput.value.trim();
+  if (!content) return;
+
+  try {
+    const created = await createMessage({ content, guestName: '访客', animationType: 'scroll' });
+    createDanmu(created.content, created.guestAvatar);
+  } catch {
+    createDanmu(content);
+  }
+
   userInput.value = '';
 };
 
-let interval: any;
+let interval: ReturnType<typeof setInterval> | undefined;
 
-onMounted(() => {
-  // Initial batch - smaller
-  for (let i = 0; i < 5; i++) {
-    setTimeout(createDanmu, i * 1000);
+onMounted(async () => {
+  try {
+    const page = await getMessages(1, 50);
+    messages.value = page.records || [];
+  } catch {
+    messages.value = [];
   }
-  
-  // Continuous generation - slower interval
+
+  for (let i = 0; i < 5; i += 1) {
+    setTimeout(() => createDanmu(), i * 1000);
+  }
+
   interval = setInterval(() => {
-    if (danmuList.value.length < 20) {
-      createDanmu();
-    }
+    if (danmuList.value.length < 20) createDanmu();
   }, 2500);
 });
 
 onUnmounted(() => {
-  clearInterval(interval);
+  if (interval) clearInterval(interval);
 });
 </script>
-
 <template>
   <div class="relative w-full h-[calc(100vh-200px)] min-h-[500px] overflow-hidden font-sans">
 
@@ -190,7 +178,7 @@ onUnmounted(() => {
           v-model="userInput"
           @keyup.enter="sendDanmu"
           type="text" 
-          placeholder="发送一条弹幕..." 
+          placeholder="说点什么吧..."
           class="w-full px-6 py-4 bg-black/50 backdrop-blur-2xl rounded-full text-white placeholder-white/40 outline-none focus:ring-2 focus:ring-white/30 transition-all shadow-2xl"
         />
         <button 
@@ -437,3 +425,4 @@ onUnmounted(() => {
 }
 .danmu-wavy { animation-name: danmuWavy; }
 </style>
+

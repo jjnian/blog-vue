@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
  */
 @Data
 @TableName("tags")
-public class Tag {
+public class TagEntity {
 
     @TableId(type = IdType.AUTO)
     private Long id;

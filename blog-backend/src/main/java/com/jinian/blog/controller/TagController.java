@@ -2,7 +2,7 @@ package com.jinian.blog.controller;
 
 import com.jinian.blog.common.Result;
 import com.jinian.blog.dto.response.TagResponse;
-import com.jinian.blog.entity.Tag;
+import com.jinian.blog.entity.TagEntity;
 import com.jinian.blog.service.TagService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -36,14 +36,14 @@ public class TagController {
 
     @Operation(summary = "创建标签")
     @PostMapping
-    public Result<TagResponse> createTag(@RequestBody Tag tag) {
-        return Result.success(tagService.createTag(tag));
+    public Result<TagResponse> createTag(@RequestBody TagEntity tagEntity) {
+        return Result.success(tagService.createTag(tagEntity));
     }
 
     @Operation(summary = "更新标签")
     @PutMapping("/{id}")
-    public Result<TagResponse> updateTag(@PathVariable Long id, @RequestBody Tag tag) {
-        return Result.success(tagService.updateTag(id, tag));
+    public Result<TagResponse> updateTag(@PathVariable Long id, @RequestBody TagEntity tagEntity) {
+        return Result.success(tagService.updateTag(id, tagEntity));
     }
 
     @Operation(summary = "删除标签")

@@ -1,8 +1,118 @@
+# Dependencies
 node_modules/
+.pnp
+.pnp.js
+
+# Build outputs
 build/
 dist/
+*.tsbuildinfo
+
+# Testing
 coverage/
-.DS_Store
-*.log
-.env*
+.nyc_output
+
+# Environment
+.env
+.env.local
+.env.*.local
 !.env.example
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Editor / IDE
+.DS_Store
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+*.sublime-*
+.project
+.classpath
+.settings/
+
+# OS
+Thumbs.db
+Desktop.ini
+
+# Backend - Java / Spring
+*.class
+*.jar
+*.war
+*.ear
+target/
+!.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+*.properties
+application-local.yml
+application-dev.yml
+application-prod.yml
+
+# Backend - Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+.venv
+pip-log.txt
+*.egg-info/
+dist/
+build/
+*.spec
+
+# Backend - Node.js (if any)
+# (already covered by node_modules above)
+
+# Backend - Go
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+vendor/
+
+# Backend - Database
+*.sqlite
+*.sqlite3
+*.db
+*.sql.gz
+.mongo/
+redis/
+
+# Backend - Docker
+docker-compose.override.yml
+
+# Backend - Misc
+tmp/
+temp/
+*.pid
+*.seed
+*.pid.lock
+*.tgz
+*.tar.gz
+.cache/
+.parcel-cache/
+.next/
+.nuxt/
+.vuepress/dist
+.serverless/
+.fusebox/
+.dynamodb/
+.tern-port
+.tmp_*

@@ -96,7 +96,7 @@ mvn spring-boot:run
 | GET | /api/articles | 文章列表 |
 | GET | /api/articles/{id} | 文章详情 |
 | GET | /api/categories | 分类列表 |
-| GET | /api/tags | 标签列表 |
+| GET | /api/tagEntities | 标签列表 |
 | GET | /api/messages | 留言列表 |
 | GET | /api/wishes | 许愿列表 |
 | GET | /api/links | 友链列表 |
@@ -137,7 +137,7 @@ mvn spring-boot:run
 - `menus` - 菜单表
 - `articles` - 文章表
 - `categories` - 分类表
-- `tags` - 标签表
+- `tagEntities` - 标签表
 - `comments` - 评论表
 - `messages` - 留言墙表
 - `wishes` - 许愿树表

@@ -1,12 +1,23 @@
 <script setup lang="ts">
+import { onMounted, ref } from 'vue';
 import { Link as LinkIcon } from 'lucide-vue-next';
+import { getLinks } from '@/api/blog';
 
-const links = [
-  { name: 'Vue.js', desc: '渐进式 JavaScript 框架', url: 'https://vuejs.org', avatar: 'https://picsum.photos/seed/vue/100/100' },
-  { name: 'Vite', desc: '下一代前端工具链', url: 'https://vitejs.dev', avatar: 'https://picsum.photos/seed/vite/100/100' },
-  { name: 'Tailwind CSS', desc: '无需离开您的 HTML，即可快速建立现代网站。', url: 'https://tailwindcss.com', avatar: 'https://picsum.photos/seed/tailwind/100/100' },
-  { name: 'Lucide', desc: '美丽的、一致的图标', url: 'https://lucide.dev', avatar: 'https://picsum.photos/seed/lucide/100/100' }
-];
+const links = ref<Array<{ name: string; desc: string; url: string; avatar: string }>>([]);
+
+onMounted(async () => {
+  try {
+    const list = await getLinks();
+    links.value = list.map((item, index) => ({
+      name: item.name,
+      desc: item.description || '暂无描述',
+      url: item.url,
+      avatar: item.avatar || `https://picsum.photos/seed/link-${index}/100/100`,
+    }));
+  } catch {
+    links.value = [];
+  }
+});
 </script>
 
 <template>

@@ -1,12 +1,31 @@
 <script setup lang="ts">
+import { onMounted, ref } from 'vue';
 import { LayoutGrid } from 'lucide-vue-next';
+import { getCategories } from '@/api/blog';
 
-const categories = [
-  { name: '数据库', count: 2, color: 'bg-blue-100 text-blue-600' },
-  { name: '后端', count: 2, color: 'bg-green-100 text-green-600' },
-  { name: 'DevOps', count: 1, color: 'bg-purple-100 text-purple-600' },
-  { name: '随笔', count: 2, color: 'bg-pink-100 text-pink-600' }
+const palette = [
+  'bg-blue-100 text-blue-600',
+  'bg-green-100 text-green-600',
+  'bg-purple-100 text-purple-600',
+  'bg-pink-100 text-pink-600',
+  'bg-orange-100 text-orange-600',
+  'bg-cyan-100 text-cyan-600',
 ];
+
+const categories = ref<Array<{ name: string; count: number; color: string }>>([]);
+
+onMounted(async () => {
+  try {
+    const list = await getCategories();
+    categories.value = list.map((item, index) => ({
+      name: item.name,
+      count: Number(item.articleCount || 0),
+      color: palette[index % palette.length],
+    }));
+  } catch {
+    categories.value = [];
+  }
+});
 </script>
 
 <template>

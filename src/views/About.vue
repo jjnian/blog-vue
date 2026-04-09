@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { User, Mail, Github, Twitter, Code, Palette, Coffee, BookOpen, Briefcase, GraduationCap, Star } from 'lucide-vue-next';
+import { User, Mail, Github, Twitter, Code, Palette, Coffee, BookOpen, Briefcase, GraduationCap, Star, Music } from 'lucide-vue-next';
 
 const skills = [
   { name: 'Vue.js / React', level: 90, color: 'bg-emerald-400' },

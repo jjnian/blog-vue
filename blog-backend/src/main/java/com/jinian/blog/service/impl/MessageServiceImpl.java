@@ -6,12 +6,15 @@ import com.jinian.blog.dto.request.MessageRequest;
 import com.jinian.blog.dto.response.MessageResponse;
 import com.jinian.blog.dto.response.PageResponse;
 import com.jinian.blog.entity.Message;
+import com.jinian.blog.entity.User;
 import com.jinian.blog.mapper.MessageMapper;
+import com.jinian.blog.mapper.UserMapper;
 import com.jinian.blog.service.MessageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -23,6 +26,7 @@ import java.util.stream.Collectors;
 public class MessageServiceImpl implements MessageService {
 
     private final MessageMapper messageMapper;
+    private final UserMapper userMapper;
 
     @Override
     public PageResponse<MessageResponse> getMessages(int page, int size) {
@@ -51,15 +55,17 @@ public class MessageServiceImpl implements MessageService {
     @Override
     public MessageResponse createMessage(MessageRequest request, Long userId, String ipAddress) {
         Message message = new Message();
+        User user = userId != null ? userMapper.selectById(userId) : null;
+
         message.setContent(request.getContent());
         message.setUserId(userId);
-        message.setGuestName(request.getGuestName());
+        message.setGuestName(resolveGuestName(request, user));
+        message.setGuestAvatar(resolveGuestAvatar(request, user));
         message.setAnimationType(request.getAnimationType() != null ? request.getAnimationType() : "scroll");
-        message.setColor(request.getColor());
-        message.setFontSize(request.getFontSize());
+        message.setColor(request.getColor() != null ? request.getColor() : "#ffffff");
+        message.setFontSize(request.getFontSize() != null ? request.getFontSize() : "1rem");
         message.setIpAddress(ipAddress);
         message.setStatus("ACTIVE");
-        message.setCreatedAt(LocalDateTime.now());
 
         messageMapper.insert(message);
         return toResponse(message);
@@ -81,5 +87,28 @@ public class MessageServiceImpl implements MessageService {
                 .fontSize(message.getFontSize())
                 .createdAt(message.getCreatedAt())
                 .build();
+    }
+
+    private String resolveGuestName(MessageRequest request, User user) {
+        if (request.getGuestName() != null && !request.getGuestName().isBlank()) {
+            return request.getGuestName();
+        }
+        if (user != null && user.getNickname() != null && !user.getNickname().isBlank()) {
+            return user.getNickname();
+        }
+        if (user != null && user.getUsername() != null && !user.getUsername().isBlank()) {
+            return user.getUsername();
+        }
+        return "访客";
+    }
+    private String resolveGuestAvatar(MessageRequest request, User user) {
+        if (request.getGuestAvatar() != null && !request.getGuestAvatar().isBlank()) {
+            return request.getGuestAvatar();
+        }
+        if (user != null && user.getAvatar() != null && !user.getAvatar().isBlank()) {
+            return user.getAvatar();
+        }
+        String seed = resolveGuestName(request, user);
+        return "https://picsum.photos/seed/" + Math.abs(Objects.hash(seed)) + "/100/100";
     }
 }

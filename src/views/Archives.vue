@@ -1,5 +1,29 @@
 <script setup lang="ts">
+import { onMounted, ref } from 'vue';
 import { Clock } from 'lucide-vue-next';
+import { getArticles } from '@/api/blog';
+
+const timeline = ref<Array<{ date: string; title: string; excerpt: string }>>([]);
+
+const normalizeDate = (value?: string) => {
+  if (!value) return '-';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return date.toLocaleDateString('zh-CN');
+};
+
+onMounted(async () => {
+  try {
+    const page = await getArticles({ page: 1, size: 3, status: 'PUBLISHED' });
+    timeline.value = (page.records || []).map((item) => ({
+      date: normalizeDate(item.publishedAt || item.createdAt),
+      title: item.title,
+      excerpt: item.excerpt || '暂无摘要',
+    }));
+  } catch {
+    timeline.value = [];
+  }
+});
 </script>
 
 <template>
@@ -18,10 +42,10 @@ import { Clock } from 'lucide-vue-next';
         <!-- Card -->
         <div class="w-[calc(100%-4rem)] md:w-[calc(50%-3rem)] p-6 rounded-2xl glass shadow-sm group-hover:shadow-md transition-all duration-300 group-hover:-translate-y-1">
           <div class="flex items-center justify-between mb-2">
-            <span class="font-bold text-[#49b1f5] text-sm">2024-10-13</span>
+            <span class="font-bold text-[#49b1f5] text-sm">{{ timeline[0]?.date || '—' }}</span>
           </div>
-          <h3 class="font-bold text-lg mb-1 text-gray-800">MySQL 8.0 深度安装指南</h3>
-          <p class="text-gray-500 text-sm line-clamp-2">探索 MySQL 8.0 的安装艺术，从 environment 配置到性能优化，为你的数据之旅奠定坚实基础。</p>
+          <h3 class="font-bold text-lg mb-1 text-gray-800">{{ timeline[0]?.title || '暂无文章' }}</h3>
+          <p class="text-gray-500 text-sm line-clamp-2">{{ timeline[0]?.excerpt || '暂无摘要' }}</p>
         </div>
       </div>
       
@@ -34,10 +58,10 @@ import { Clock } from 'lucide-vue-next';
         <!-- Card -->
         <div class="w-[calc(100%-4rem)] md:w-[calc(50%-3rem)] p-6 rounded-2xl glass shadow-sm group-hover:shadow-md transition-all duration-300 group-hover:-translate-y-1">
           <div class="flex items-center justify-between mb-2">
-            <span class="font-bold text-gray-400 text-sm group-hover:text-[#49b1f5] transition-colors">2023-07-16</span>
+            <span class="font-bold text-gray-400 text-sm group-hover:text-[#49b1f5] transition-colors">{{ timeline[1]?.date || '—' }}</span>
           </div>
-          <h3 class="font-bold text-lg mb-1 text-gray-800">Spring AOP：切面编程的魅力</h3>
-          <p class="text-gray-500 text-sm line-clamp-2">深入理解 Spring AOP 的核心哲学，让你的代码在解耦与复用之间找到完美的平衡。</p>
+          <h3 class="font-bold text-lg mb-1 text-gray-800">{{ timeline[1]?.title || '暂无文章' }}</h3>
+          <p class="text-gray-500 text-sm line-clamp-2">{{ timeline[1]?.excerpt || '暂无摘要' }}</p>
         </div>
       </div>
       
@@ -50,10 +74,10 @@ import { Clock } from 'lucide-vue-next';
         <!-- Card -->
         <div class="w-[calc(100%-4rem)] md:w-[calc(50%-3rem)] p-6 rounded-2xl glass shadow-sm group-hover:shadow-md transition-all duration-300 group-hover:-translate-y-1">
           <div class="flex items-center justify-between mb-2">
-            <span class="font-bold text-gray-400 text-sm group-hover:text-[#49b1f5] transition-colors">2023-06-24</span>
+            <span class="font-bold text-gray-400 text-sm group-hover:text-[#49b1f5] transition-colors">{{ timeline[2]?.date || '—' }}</span>
           </div>
-          <h3 class="font-bold text-lg mb-1 text-gray-800">Java 虚拟机：内存与性能的交响乐</h3>
-          <p class="text-gray-500 text-sm line-clamp-2">揭开 JVM 的神秘面纱，探索内存模型与垃圾回收的律动，让你的 Java 应用起舞。</p>
+          <h3 class="font-bold text-lg mb-1 text-gray-800">{{ timeline[2]?.title || '暂无文章' }}</h3>
+          <p class="text-gray-500 text-sm line-clamp-2">{{ timeline[2]?.excerpt || '暂无摘要' }}</p>
         </div>
       </div>
     </div>

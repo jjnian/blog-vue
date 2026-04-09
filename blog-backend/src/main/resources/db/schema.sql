@@ -1,16 +1,5 @@
--- =============================================
--- 博客系统数据库初始化脚本
--- PostgreSQL 15+
--- =============================================
+﻿-- Blog backend schema for PostgreSQL 15+
 
--- 创建数据库 (需要超级管理员权限)
--- CREATE DATABASE blog WITH ENCODING='UTF8';
-
--- =============================================
--- 1. 用户与权限相关表
--- =============================================
-
--- 用户表
 CREATE TABLE IF NOT EXISTS users (
     id BIGSERIAL PRIMARY KEY,
     username VARCHAR(50) NOT NULL UNIQUE,
@@ -26,10 +15,6 @@ CREATE TABLE IF NOT EXISTS users (
     deleted SMALLINT DEFAULT 0
 );
 
-COMMENT ON TABLE users IS '用户表';
-COMMENT ON COLUMN users.status IS '状态: ACTIVE-正常, INACTIVE-未激活, BANNED-封禁';
-
--- 角色表
 CREATE TABLE IF NOT EXISTS roles (
     id BIGSERIAL PRIMARY KEY,
     name VARCHAR(50) NOT NULL UNIQUE,
@@ -39,9 +24,6 @@ CREATE TABLE IF NOT EXISTS roles (
     deleted SMALLINT DEFAULT 0
 );
 
-COMMENT ON TABLE roles IS '角色表';
-
--- 权限表
 CREATE TABLE IF NOT EXISTS permissions (
     id BIGSERIAL PRIMARY KEY,
     name VARCHAR(100) NOT NULL UNIQUE,
@@ -52,28 +34,18 @@ CREATE TABLE IF NOT EXISTS permissions (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-COMMENT ON TABLE permissions IS '权限表';
-COMMENT ON COLUMN permissions.resource_type IS '资源类型: MENU-菜单, API-接口, BUTTON-按钮';
-
--- 用户-角色关联表
 CREATE TABLE IF NOT EXISTS user_roles (
     user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     role_id BIGINT NOT NULL REFERENCES roles(id) ON DELETE CASCADE,
     PRIMARY KEY (user_id, role_id)
 );
 
-COMMENT ON TABLE user_roles IS '用户-角色关联表';
-
--- 角色-权限关联表
 CREATE TABLE IF NOT EXISTS role_permissions (
     role_id BIGINT NOT NULL REFERENCES roles(id) ON DELETE CASCADE,
     permission_id BIGINT NOT NULL REFERENCES permissions(id) ON DELETE CASCADE,
     PRIMARY KEY (role_id, permission_id)
 );
 
-COMMENT ON TABLE role_permissions IS '角色-权限关联表';
-
--- 菜单表
 CREATE TABLE IF NOT EXISTS menus (
     id BIGSERIAL PRIMARY KEY,
     parent_id BIGINT REFERENCES menus(id) ON DELETE SET NULL,
@@ -89,22 +61,12 @@ CREATE TABLE IF NOT EXISTS menus (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-COMMENT ON TABLE menus IS '菜单表';
-
--- 角色-菜单关联表
 CREATE TABLE IF NOT EXISTS role_menus (
     role_id BIGINT NOT NULL REFERENCES roles(id) ON DELETE CASCADE,
     menu_id BIGINT NOT NULL REFERENCES menus(id) ON DELETE CASCADE,
     PRIMARY KEY (role_id, menu_id)
 );
 
-COMMENT ON TABLE role_menus IS '角色-菜单关联表';
-
--- =============================================
--- 2. 文章与内容相关表
--- =============================================
-
--- 分类表
 CREATE TABLE IF NOT EXISTS categories (
     id BIGSERIAL PRIMARY KEY,
     name VARCHAR(50) NOT NULL UNIQUE,
@@ -119,9 +81,6 @@ CREATE TABLE IF NOT EXISTS categories (
     deleted SMALLINT DEFAULT 0
 );
 
-COMMENT ON TABLE categories IS '分类表';
-
--- 标签表
 CREATE TABLE IF NOT EXISTS tags (
     id BIGSERIAL PRIMARY KEY,
     name VARCHAR(50) NOT NULL UNIQUE,
@@ -132,9 +91,6 @@ CREATE TABLE IF NOT EXISTS tags (
     deleted SMALLINT DEFAULT 0
 );
 
-COMMENT ON TABLE tags IS '标签表';
-
--- 文章表
 CREATE TABLE IF NOT EXISTS articles (
     id BIGSERIAL PRIMARY KEY,
     title VARCHAR(255) NOT NULL,
@@ -156,23 +112,12 @@ CREATE TABLE IF NOT EXISTS articles (
     deleted SMALLINT DEFAULT 0
 );
 
-COMMENT ON TABLE articles IS '文章表';
-COMMENT ON COLUMN articles.status IS '状态: DRAFT-草稿, PUBLISHED-已发布, ARCHIVED-已归档';
-
--- 文章-标签关联表
 CREATE TABLE IF NOT EXISTS article_tags (
     article_id BIGINT NOT NULL REFERENCES articles(id) ON DELETE CASCADE,
     tag_id BIGINT NOT NULL REFERENCES tags(id) ON DELETE CASCADE,
     PRIMARY KEY (article_id, tag_id)
 );
 
-COMMENT ON TABLE article_tags IS '文章-标签关联表';
-
--- =============================================
--- 3. 互动功能相关表
--- =============================================
-
--- 评论表
 CREATE TABLE IF NOT EXISTS comments (
     id BIGSERIAL PRIMARY KEY,
     content TEXT NOT NULL,
@@ -190,10 +135,6 @@ CREATE TABLE IF NOT EXISTS comments (
     deleted SMALLINT DEFAULT 0
 );
 
-COMMENT ON TABLE comments IS '评论表';
-COMMENT ON COLUMN comments.status IS '状态: PENDING-待审核, APPROVED-已通过, SPAM-垃圾';
-
--- 留言墙/弹幕表
 CREATE TABLE IF NOT EXISTS messages (
     id BIGSERIAL PRIMARY KEY,
     content TEXT NOT NULL,
@@ -209,10 +150,6 @@ CREATE TABLE IF NOT EXISTS messages (
     deleted SMALLINT DEFAULT 0
 );
 
-COMMENT ON TABLE messages IS '留言墙/弹幕表';
-COMMENT ON COLUMN messages.animation_type IS '动画类型: scroll, float, zoom, swing, up, down, diagonal, bounce, spiral, flip, pulse, wavy';
-
--- 许愿树表
 CREATE TABLE IF NOT EXISTS wishes (
     id BIGSERIAL PRIMARY KEY,
     content TEXT NOT NULL,
@@ -228,13 +165,6 @@ CREATE TABLE IF NOT EXISTS wishes (
     deleted SMALLINT DEFAULT 0
 );
 
-COMMENT ON TABLE wishes IS '许愿树表';
-
--- =============================================
--- 4. 友链与其他配置表
--- =============================================
-
--- 友链表
 CREATE TABLE IF NOT EXISTS links (
     id BIGSERIAL PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
@@ -248,9 +178,6 @@ CREATE TABLE IF NOT EXISTS links (
     deleted SMALLINT DEFAULT 0
 );
 
-COMMENT ON TABLE links IS '友链表';
-
--- 系统配置表
 CREATE TABLE IF NOT EXISTS settings (
     id BIGSERIAL PRIMARY KEY,
     key VARCHAR(100) NOT NULL UNIQUE,
@@ -260,9 +187,6 @@ CREATE TABLE IF NOT EXISTS settings (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-COMMENT ON TABLE settings IS '系统配置表';
-
--- 操作日志表
 CREATE TABLE IF NOT EXISTS operation_logs (
     id BIGSERIAL PRIMARY KEY,
     user_id BIGINT REFERENCES users(id),
@@ -275,12 +199,6 @@ CREATE TABLE IF NOT EXISTS operation_logs (
     duration BIGINT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
-
-COMMENT ON TABLE operation_logs IS '操作日志表';
-
--- =============================================
--- 5. 创建索引
--- =============================================
 
 CREATE INDEX IF NOT EXISTS idx_articles_status ON articles(status);
 CREATE INDEX IF NOT EXISTS idx_articles_category ON articles(category_id);

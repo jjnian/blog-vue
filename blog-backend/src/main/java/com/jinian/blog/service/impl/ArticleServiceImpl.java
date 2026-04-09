@@ -10,7 +10,7 @@ import com.jinian.blog.dto.response.PageResponse;
 import com.jinian.blog.dto.response.TagResponse;
 import com.jinian.blog.entity.Article;
 import com.jinian.blog.entity.Category;
-import com.jinian.blog.entity.Tag;
+import com.jinian.blog.entity.TagEntity;
 import com.jinian.blog.mapper.ArticleMapper;
 import com.jinian.blog.mapper.CategoryMapper;
 import com.jinian.blog.mapper.TagMapper;
@@ -206,8 +206,8 @@ public class ArticleServiceImpl implements ArticleService {
         }
 
         // 获取标签
-        List<Tag> tags = tagMapper.selectByArticleId(article.getId());
-        List<TagResponse> tagResponses = tags.stream()
+        List<TagEntity> tagEntities = tagMapper.selectByArticleId(article.getId());
+        List<TagResponse> tagResponses = tagEntities.stream()
                 .map(tag -> TagResponse.builder()
                         .id(tag.getId())
                         .name(tag.getName())

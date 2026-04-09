@@ -7,7 +7,7 @@ import com.jinian.blog.dto.response.ArticleResponse;
 import com.jinian.blog.dto.response.PageResponse;
 import com.jinian.blog.entity.Article;
 import com.jinian.blog.entity.Category;
-import com.jinian.blog.entity.Tag;
+import com.jinian.blog.entity.TagEntity;
 import com.jinian.blog.mapper.ArticleMapper;
 import com.jinian.blog.mapper.CategoryMapper;
 import com.jinian.blog.mapper.TagMapper;
@@ -19,10 +19,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/**
- * 管理后台 - 文章管理
- */
-@Tag(name = "管理后台-文章", description = "文章管理接口")
+@Tag(name = "Admin Articles", description = "Admin article management APIs")
 @RestController
 @RequestMapping("/admin/articles")
 @RequiredArgsConstructor
@@ -32,7 +29,7 @@ public class AdminArticleController {
     private final CategoryMapper categoryMapper;
     private final TagMapper tagMapper;
 
-    @Operation(summary = "获取文章列表(含草稿)")
+    @Operation(summary = "Get admin article list (paginated)")
     @GetMapping
     public Result<PageResponse<ArticleResponse>> getArticles(
             @RequestParam(defaultValue = "1") int page,
@@ -54,8 +51,8 @@ public class AdminArticleController {
         wrapper.orderByDesc(Article::getCreatedAt);
 
         Page<Article> articlePage = articleMapper.selectPage(pageParam, wrapper);
-
-        List<ArticleResponse> records = articlePage.getRecords().stream()
+        List<ArticleResponse> records = articlePage.getRecords()
+                .stream()
                 .map(this::toResponse)
                 .collect(Collectors.toList());
 
@@ -68,24 +65,24 @@ public class AdminArticleController {
                 .build());
     }
 
-    @Operation(summary = "更新文章状态")
+    @Operation(summary = "Update article status")
     @PutMapping("/{id}/status")
     public Result<Void> updateStatus(@PathVariable Long id, @RequestParam String status) {
         Article article = articleMapper.selectById(id);
         if (article == null) {
-            return Result.error(404, "文章不存在");
+            return Result.error(404, "Article not found");
         }
         article.setStatus(status);
         articleMapper.updateById(article);
         return Result.success();
     }
 
-    @Operation(summary = "置顶文章")
+    @Operation(summary = "Set article top status")
     @PutMapping("/{id}/top")
     public Result<Void> toggleTop(@PathVariable Long id, @RequestParam Boolean isTop) {
         Article article = articleMapper.selectById(id);
         if (article == null) {
-            return Result.error(404, "文章不存在");
+            return Result.error(404, "Article not found");
         }
         article.setIsTop(isTop);
         articleMapper.updateById(article);
@@ -119,8 +116,8 @@ public class AdminArticleController {
             }
         }
 
-        List<Tag> tags = tagMapper.selectByArticleId(article.getId());
-        builder.tags(tags.stream()
+        List<TagEntity> tagEntities = tagMapper.selectByArticleId(article.getId());
+        builder.tags(tagEntities.stream()
                 .map(tag -> com.jinian.blog.dto.response.TagResponse.builder()
                         .id(tag.getId())
                         .name(tag.getName())
