@@ -60,7 +60,7 @@ public class SecurityConfig {
                         // Swagger文档
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         // 管理接口 - 需要ADMIN角色
-                        .requestMatchers("/admin/**").hasAnyRole("ADMIN", "SUPER_ADMIN")
+                        .requestMatchers("/admin/**").hasAnyAuthority("ADMIN", "SUPER_ADMIN")
                         // 其他接口需要认证（包括POST/PUT/DELETE文章）
                         .anyRequest().authenticated()
                 )
