@@ -1,4 +1,9 @@
-﻿-- Blog backend schema for PostgreSQL 15+
+-- Blog backend DDL for PostgreSQL 15+
+-- Consolidated from: schema.sql, ddl_fix_tags.sql
+
+-- ============================================================
+-- Table Definitions
+-- ============================================================
 
 CREATE TABLE IF NOT EXISTS users (
     id BIGSERIAL PRIMARY KEY,
@@ -200,6 +205,10 @@ CREATE TABLE IF NOT EXISTS operation_logs (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- ============================================================
+-- Indexes
+-- ============================================================
+
 CREATE INDEX IF NOT EXISTS idx_articles_status ON articles(status);
 CREATE INDEX IF NOT EXISTS idx_articles_category ON articles(category_id);
 CREATE INDEX IF NOT EXISTS idx_articles_created ON articles(created_at DESC);
@@ -210,3 +219,53 @@ CREATE INDEX IF NOT EXISTS idx_messages_created ON messages(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_wishes_created ON wishes(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);
 CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
+
+-- ============================================================
+-- Migration: tagentities -> tags (run only if old table exists)
+-- ============================================================
+
+DO $$
+BEGIN
+    IF EXISTS (
+        SELECT 1
+        FROM information_schema.tables
+        WHERE table_schema = 'public' AND table_name = 'tagentities'
+    ) THEN
+        -- Migrate rows that do not conflict on id / name / slug
+        INSERT INTO tags (id, name, slug, color, article_count, created_at, deleted)
+        SELECT t.id, t.name, t.slug, t.color, t.article_count, t.created_at, t.deleted
+        FROM tagentities t
+        WHERE NOT EXISTS (
+            SELECT 1 FROM tags x
+            WHERE x.id = t.id
+               OR x.name = t.name
+               OR (x.slug IS NOT NULL AND t.slug IS NOT NULL AND x.slug = t.slug)
+        );
+
+        -- Sync mutable columns for rows matched by stable business keys
+        UPDATE tags tg
+        SET color         = src.color,
+            article_count = src.article_count,
+            deleted       = src.deleted,
+            created_at    = COALESCE(src.created_at, tg.created_at),
+            slug          = COALESCE(tg.slug, src.slug)
+        FROM tagentities src
+        WHERE tg.name = src.name
+           OR (tg.slug IS NOT NULL AND src.slug IS NOT NULL AND tg.slug = src.slug);
+    END IF;
+END $$;
+
+-- Reset tags sequence to avoid PK conflicts after migration
+DO $$
+DECLARE
+    seq_name text;
+BEGIN
+    seq_name := pg_get_serial_sequence('tags', 'id');
+    IF seq_name IS NOT NULL THEN
+        EXECUTE format(
+            'SELECT setval(%L, %s, true)',
+            seq_name,
+            COALESCE((SELECT MAX(id) FROM tags), 1)
+        );
+    END IF;
+END $$;
