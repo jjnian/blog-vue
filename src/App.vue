@@ -91,7 +91,7 @@ const fallbackNavItems = [
     ],
   },
   { name: '许愿树', icon: TreeDeciduous, link: '/wishes' },
-  { name: '朋友地图', icon: Users, link: '/friends' },
+  { name: '交友', icon: Users, link: '/friends' },
   { name: '工具', icon: Wrench, link: '/tools' },
   { name: '友链', icon: LinkIcon, link: '/link' },
   { name: '关于', icon: User, link: '/about' },
