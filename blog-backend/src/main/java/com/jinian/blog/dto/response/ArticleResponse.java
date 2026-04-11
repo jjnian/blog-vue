@@ -17,6 +17,7 @@ public class ArticleResponse {
     private String title;
     private String slug;
     private String excerpt;
+    private String content;
     private String coverImage;
     private Integer views;
     private Integer likes;

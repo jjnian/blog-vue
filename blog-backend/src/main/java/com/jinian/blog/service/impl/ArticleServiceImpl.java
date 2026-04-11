@@ -221,6 +221,7 @@ public class ArticleServiceImpl implements ArticleService {
                 .title(article.getTitle())
                 .slug(article.getSlug())
                 .excerpt(article.getExcerpt())
+                .content(article.getContent())
                 .coverImage(article.getCoverImage())
                 .views(article.getViews())
                 .likes(article.getLikes())

@@ -5,7 +5,9 @@ import com.jinian.blog.common.exception.ResourceNotFoundException;
 import com.jinian.blog.dto.request.CommentRequest;
 import com.jinian.blog.dto.response.CommentResponse;
 import com.jinian.blog.entity.Comment;
+import com.jinian.blog.entity.User;
 import com.jinian.blog.mapper.CommentMapper;
+import com.jinian.blog.mapper.UserMapper;
 import com.jinian.blog.service.CommentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -24,6 +26,7 @@ import java.util.stream.Collectors;
 public class CommentServiceImpl implements CommentService {
 
     private final CommentMapper commentMapper;
+    private final UserMapper userMapper;
 
     @Override
     public List<CommentResponse> getCommentsByArticleId(Long articleId) {
@@ -68,6 +71,16 @@ public class CommentServiceImpl implements CommentService {
         commentMapper.updateById(comment);
     }
 
+    @Override
+    public void likeComment(Long id) {
+        Comment comment = commentMapper.selectById(id);
+        if (comment == null) {
+            throw new ResourceNotFoundException("评论", id);
+        }
+        comment.setLikes(comment.getLikes() == null ? 1 : comment.getLikes() + 1);
+        commentMapper.updateById(comment);
+    }
+
     private List<CommentResponse> buildCommentTree(List<Comment> comments, Long parentId) {
         Map<Long, List<Comment>> commentMap = comments.stream()
                 .collect(Collectors.groupingBy(c -> c.getParentId() == null ? 0L : c.getParentId()));
@@ -86,10 +99,19 @@ public class CommentServiceImpl implements CommentService {
         CommentResponse.UserInfo.UserInfoBuilder userBuilder = CommentResponse.UserInfo.builder();
 
         if (comment.getUserId() != null) {
-            userBuilder.id(comment.getUserId());
+            User user = userMapper.selectById(comment.getUserId());
+            if (user != null) {
+                userBuilder.id(user.getId())
+                          .name(user.getNickname() != null ? user.getNickname() : user.getUsername())
+                          .email(user.getEmail())
+                          .avatar(user.getAvatar());
+            } else {
+                userBuilder.id(comment.getUserId());
+            }
         } else {
             userBuilder.name(comment.getGuestName())
-                      .email(comment.getGuestEmail());
+                      .email(comment.getGuestEmail())
+                      .avatar(comment.getGuestAvatar());
         }
 
         return CommentResponse.builder()

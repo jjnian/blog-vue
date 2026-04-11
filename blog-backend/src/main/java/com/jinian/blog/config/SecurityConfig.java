@@ -58,6 +58,7 @@ public class SecurityConfig {
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/links").permitAll()
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/comments", "/comments/**").permitAll()
                         .requestMatchers(org.springframework.http.HttpMethod.POST, "/comments").permitAll()
+                        .requestMatchers(org.springframework.http.HttpMethod.POST, "/comments/*/like").permitAll()
                         // Swagger文档
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         // 管理接口 - 需要ADMIN角色

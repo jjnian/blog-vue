@@ -16,6 +16,7 @@ const routes = [
   { path: '/link', name: '友链', component: () => import('../views/Link.vue') },
   { path: '/about', name: '关于', component: () => import('../views/About.vue') },
   { path: '/login', name: '登录', component: () => import('../views/Login.vue') },
+  { path: '/articles/:slug', name: '文章详情', component: () => import('../views/ArticleDetail.vue') },
   {
     path: '/profile',
     name: '我',
@@ -120,6 +121,12 @@ router.beforeEach(async (to, _from, next) => {
     const menus = token ? await getUserMenus() : await getPublicMenus();
     const allowedPaths = flattenMenuPaths(menus);
     const specialPaths = token ? ['/', '/profile', '/write'] : ['/'];
+
+    // Article detail pages are always accessible
+    if (to.path.startsWith('/articles/')) {
+      next();
+      return;
+    }
 
     if (!specialPaths.includes(to.path) && !isPathAllowed(to.path, allowedPaths)) {
       next({ path: token ? '/' : '/login', query: token ? undefined : { redirect: to.fullPath } });
