@@ -17,4 +17,6 @@ public interface CommentService {
     void deleteComment(Long id);
 
     void auditComment(Long id, String status);
+
+    void likeComment(Long id);
 }

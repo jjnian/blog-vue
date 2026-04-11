@@ -1,4 +1,4 @@
-﻿import { apiGet, apiPost } from './http';
+﻿import { apiGet, apiPost, apiDelete } from './http';
 
 export interface PageResponse<T> {
   records: T[];
@@ -30,13 +30,36 @@ export interface Article {
   title: string;
   slug?: string;
   excerpt?: string;
+  content?: string;
   coverImage?: string;
   views?: number;
+  likes?: number;
   comments?: number;
+  status?: string;
+  isTop?: boolean;
   createdAt?: string;
   publishedAt?: string;
   category?: Category;
   tags?: Tag[];
+}
+
+export interface CommentUser {
+  id?: number;
+  name?: string;
+  email?: string;
+  avatar?: string;
+}
+
+export interface Comment {
+  id: number;
+  content: string;
+  articleId?: number;
+  parentId?: number;
+  user?: CommentUser;
+  status?: string;
+  likes?: number;
+  createdAt?: string;
+  children?: Comment[];
 }
 
 export interface LinkItem {
@@ -130,3 +153,23 @@ export const createWish = (payload: {
   positionX?: number;
   positionY?: number;
 }) => apiPost<WishItem, typeof payload>('/wishes', payload);
+
+export const getArticleBySlug = (slug: string) =>
+  apiGet<Article>(`/articles/slug/${encodeURIComponent(slug)}`);
+
+export const getArticleComments = (articleId: number) =>
+  apiGet<Comment[]>(`/comments/article/${articleId}`);
+
+export const createComment = (payload: {
+  content: string;
+  articleId: number;
+  parentId?: number;
+  guestName?: string;
+  guestEmail?: string;
+}) => apiPost<Comment, typeof payload>('/comments', payload);
+
+export const likeComment = (id: number) =>
+  apiPost<void, Record<string, never>>(`/comments/${id}/like`, {});
+
+export const deleteComment = (id: number) =>
+  apiDelete<void>(`/comments/${id}`);

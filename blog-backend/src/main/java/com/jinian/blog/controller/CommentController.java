@@ -39,6 +39,13 @@ public class CommentController {
         return Result.success(commentService.createComment(request, userId, ipAddress));
     }
 
+    @Operation(summary = "点赞评论")
+    @PostMapping("/{id}/like")
+    public Result<Void> likeComment(@PathVariable Long id) {
+        commentService.likeComment(id);
+        return Result.success();
+    }
+
     @Operation(summary = "删除评论")
     @DeleteMapping("/{id}")
     public Result<Void> deleteComment(@PathVariable Long id) {
