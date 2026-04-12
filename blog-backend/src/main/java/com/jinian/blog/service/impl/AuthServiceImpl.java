@@ -11,6 +11,7 @@ import com.jinian.blog.mapper.RoleMapper;
 import com.jinian.blog.mapper.UserMapper;
 import com.jinian.blog.security.UserDetailsImpl;
 import com.jinian.blog.service.AuthService;
+import com.jinian.blog.service.PermissionService;
 import com.jinian.blog.util.JwtUtils;
 import com.jinian.blog.util.SecurityUtils;
 import lombok.RequiredArgsConstructor;
@@ -38,6 +39,7 @@ public class AuthServiceImpl implements AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtUtils jwtUtils;
     private final AuthenticationManager authenticationManager;
+    private final PermissionService permissionService;
 
     @Value("${jwt.expiration}")
     private Long jwtExpiration;
@@ -143,6 +145,7 @@ public class AuthServiceImpl implements AuthService {
 
         List<Role> roles = roleMapper.selectByUserId(userId);
         List<String> roleCodes = roles.stream().map(Role::getCode).toList();
+        List<String> permCodes = permissionService.getEffectivePermissionCodes(userId);
 
         return UserResponse.builder()
                 .id(user.getId())
@@ -155,6 +158,7 @@ public class AuthServiceImpl implements AuthService {
                 .createdAt(user.getCreatedAt())
                 .lastLoginAt(user.getLastLoginAt())
                 .roles(roleCodes)
+                .permissions(permCodes)
                 .build();
     }
 
@@ -168,6 +172,7 @@ public class AuthServiceImpl implements AuthService {
 
     private JwtResponse buildJwtResponse(String accessToken, String refreshToken,
                                           UserDetailsImpl userDetails, List<String> roles) {
+        List<String> permissions = permissionService.getEffectivePermissionCodes(userDetails.getId());
         return JwtResponse.builder()
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
@@ -180,6 +185,7 @@ public class AuthServiceImpl implements AuthService {
                         .nickname(userDetails.getNickname())
                         .avatar(userDetails.getAvatar())
                         .roles(roles)
+                        .permissions(permissions)
                         .build())
                 .build();
     }

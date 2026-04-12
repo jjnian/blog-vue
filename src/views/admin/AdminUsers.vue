@@ -1,7 +1,14 @@
 <script setup lang="ts">
 import { ref, onMounted, reactive } from 'vue';
-import { Search, RefreshCw, Shield, UserCheck, UserX, Trash2, ChevronLeft, ChevronRight } from 'lucide-vue-next';
-import { getAdminUsers, updateUserStatus, assignUserRoles, deleteUser, getAdminRoles } from '@/api/admin';
+import {
+  Search, RefreshCw, Shield, UserCheck, UserX, Trash2,
+  ChevronLeft, ChevronRight, KeyRound, CheckCircle, XCircle, MinusCircle
+} from 'lucide-vue-next';
+import {
+  getAdminUsers, updateUserStatus, assignUserRoles, deleteUser, getAdminRoles,
+  getAdminPermissions, getUserPermissionOverrides, setUserPermission, deleteUserPermission,
+  type AdminPermission, type UserPermissionOverride,
+} from '@/api/admin';
 import type { AdminUser, AdminRole } from '@/api/admin';
 
 const users = ref<AdminUser[]>([]);
@@ -14,6 +21,14 @@ const filter = reactive({ page: 1, size: 10, keyword: '' });
 
 const editingRoles = ref<{ userId: number; roleIds: number[] } | null>(null);
 const showRoleModal = ref(false);
+
+// 用户专属权限覆盖
+const showPermModal = ref(false);
+const permUser = ref<AdminUser | null>(null);
+const allPermissions = ref<AdminPermission[]>([]);
+const userOverrides = ref<UserPermissionOverride[]>([]);
+const permLoading = ref(false);
+const savingPerm = ref(false);
 
 const fetchUsers = async () => {
   loading.value = true;
@@ -81,6 +96,56 @@ const saveRoles = async () => {
     fetchUsers();
   } catch {
     // ignore
+  }
+};
+
+const openPermModal = async (user: AdminUser) => {
+  permUser.value = user;
+  showPermModal.value = true;
+  permLoading.value = true;
+  try {
+    const [perms, overrides] = await Promise.all([
+      getAdminPermissions(),
+      getUserPermissionOverrides(user.id),
+    ]);
+    allPermissions.value = perms;
+    userOverrides.value = overrides;
+  } catch {
+    allPermissions.value = [];
+    userOverrides.value = [];
+  } finally {
+    permLoading.value = false;
+  }
+};
+
+// override state: 'grant' | 'deny' | 'inherit'
+const getOverrideState = (permId: number): 'grant' | 'deny' | 'inherit' => {
+  const found = userOverrides.value.find((o) => o.permissionId === permId);
+  if (!found) return 'inherit';
+  return found.granted ? 'grant' : 'deny';
+};
+
+const setOverride = async (permId: number, state: 'grant' | 'deny' | 'inherit') => {
+  if (!permUser.value) return;
+  savingPerm.value = true;
+  try {
+    if (state === 'inherit') {
+      await deleteUserPermission(permUser.value.id, permId);
+      userOverrides.value = userOverrides.value.filter((o) => o.permissionId !== permId);
+    } else {
+      const granted = state === 'grant';
+      await setUserPermission(permUser.value.id, permId, granted);
+      const existing = userOverrides.value.find((o) => o.permissionId === permId);
+      if (existing) {
+        existing.granted = granted;
+      } else {
+        userOverrides.value.push({ id: Date.now(), userId: permUser.value.id, permissionId: permId, granted });
+      }
+    }
+  } catch {
+    // ignore
+  } finally {
+    savingPerm.value = false;
   }
 };
 
@@ -196,6 +261,13 @@ const statusBadge = (status: string) =>
                     <Shield :size="15" />
                   </button>
                   <button
+                    @click="openPermModal(user)"
+                    class="p-2 rounded-lg hover:bg-purple-50 text-gray-300 hover:text-purple-500 transition-all"
+                    title="专属权限"
+                  >
+                    <KeyRound :size="15" />
+                  </button>
+                  <button
                     @click="toggleStatus(user)"
                     class="p-2 rounded-lg transition-all"
                     :class="user.status === 'ACTIVE' ? 'hover:bg-red-50 text-gray-300 hover:text-red-400' : 'hover:bg-green-50 text-gray-300 hover:text-green-500'"
@@ -267,6 +339,89 @@ const statusBadge = (status: string) =>
         <div class="flex gap-3">
           <button @click="showRoleModal = false" class="flex-1 py-2.5 rounded-xl border border-gray-100 text-sm text-gray-500 hover:bg-gray-50 transition-colors">取消</button>
           <button @click="saveRoles" class="flex-1 py-2.5 rounded-xl bg-[#49b1f5] text-white text-sm font-medium hover:bg-[#3a9de8] transition-colors">保存</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- User Permission Override Modal -->
+    <div v-if="showPermModal" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div class="absolute inset-0 bg-black/20 backdrop-blur-sm" @click="showPermModal = false"></div>
+      <div class="relative bg-white rounded-2xl shadow-2xl border border-gray-100 p-6 w-full max-w-lg max-h-[85vh] overflow-hidden flex flex-col">
+        <div class="flex items-center justify-between mb-1">
+          <div>
+            <h3 class="text-base font-bold text-[#2c3e50]">专属权限配置</h3>
+            <p class="text-xs text-gray-400 mt-0.5">
+              @{{ permUser?.username }} — 覆盖角色默认权限（继承 = 遵循角色设置）
+            </p>
+          </div>
+          <button @click="showPermModal = false" class="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400">
+            <XCircle :size="18" />
+          </button>
+        </div>
+
+        <!-- Legend -->
+        <div class="flex items-center gap-4 py-3 mb-2 border-b border-gray-100 text-[10px] text-gray-400">
+          <span class="flex items-center gap-1"><CheckCircle :size="12" class="text-green-500" /> 明确授权</span>
+          <span class="flex items-center gap-1"><XCircle :size="12" class="text-red-400" /> 明确拒绝</span>
+          <span class="flex items-center gap-1"><MinusCircle :size="12" class="text-gray-300" /> 继承角色</span>
+          <span v-if="savingPerm" class="ml-auto text-[#49b1f5]">保存中...</span>
+        </div>
+
+        <div v-if="permLoading" class="space-y-3 overflow-y-auto flex-1">
+          <div v-for="i in 6" :key="i" class="h-12 rounded-xl bg-gray-100 animate-pulse"></div>
+        </div>
+
+        <div v-else class="overflow-y-auto flex-1 space-y-1.5 pr-1">
+          <div
+            v-for="perm in allPermissions"
+            :key="perm.id"
+            class="flex items-center gap-3 px-4 py-3 rounded-xl border border-gray-100 hover:border-gray-200 transition-all"
+          >
+            <div class="flex-1 min-w-0">
+              <div class="text-sm font-medium text-[#2c3e50]">{{ perm.name }}</div>
+              <div class="text-[10px] font-mono text-gray-400">{{ perm.code }}</div>
+            </div>
+            <!-- Three-way toggle -->
+            <div class="flex items-center gap-1 flex-shrink-0">
+              <button
+                @click="setOverride(perm.id, 'grant')"
+                :disabled="savingPerm"
+                class="p-1.5 rounded-lg transition-all disabled:opacity-40"
+                :class="getOverrideState(perm.id) === 'grant'
+                  ? 'bg-green-100 text-green-600'
+                  : 'hover:bg-green-50 text-gray-300 hover:text-green-500'"
+                title="明确授权"
+              >
+                <CheckCircle :size="16" />
+              </button>
+              <button
+                @click="setOverride(perm.id, 'inherit')"
+                :disabled="savingPerm"
+                class="p-1.5 rounded-lg transition-all disabled:opacity-40"
+                :class="getOverrideState(perm.id) === 'inherit'
+                  ? 'bg-gray-200 text-gray-500'
+                  : 'hover:bg-gray-100 text-gray-200 hover:text-gray-400'"
+                title="继承角色"
+              >
+                <MinusCircle :size="16" />
+              </button>
+              <button
+                @click="setOverride(perm.id, 'deny')"
+                :disabled="savingPerm"
+                class="p-1.5 rounded-lg transition-all disabled:opacity-40"
+                :class="getOverrideState(perm.id) === 'deny'
+                  ? 'bg-red-100 text-red-500'
+                  : 'hover:bg-red-50 text-gray-300 hover:text-red-400'"
+                title="明确拒绝"
+              >
+                <XCircle :size="16" />
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-4 pt-4 border-t border-gray-100">
+          <button @click="showPermModal = false" class="w-full py-2.5 rounded-xl border border-gray-100 text-sm text-gray-500 hover:bg-gray-50 transition-colors">关闭</button>
         </div>
       </div>
     </div>

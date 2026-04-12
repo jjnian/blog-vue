@@ -3,7 +3,7 @@ import { ref, computed } from 'vue';
 import { useRouter, useRoute, RouterView } from 'vue-router';
 import {
   LayoutDashboard, Users, FileText, Tag as TagIcon, LayoutGrid,
-  MessageSquare, Shield, LogOut, Menu, X, ChevronRight, Settings
+  MessageSquare, Shield, LogOut, Menu, X, ChevronRight, Settings, KeyRound
 } from 'lucide-vue-next';
 import { useAuth } from '@/stores/auth';
 
@@ -21,6 +21,7 @@ const menuItems = [
   { path: '/admin/tags', label: '标签管理', icon: TagIcon },
   { path: '/admin/comments', label: '评论管理', icon: MessageSquare },
   { path: '/admin/roles', label: '角色管理', icon: Shield },
+  { path: '/admin/permissions', label: '权限管理', icon: KeyRound },
 ];
 
 const isActive = (item: typeof menuItems[0]) => {

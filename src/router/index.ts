@@ -41,6 +41,7 @@ const routes = [
       { path: 'tags', name: '管理-标签', component: () => import('../views/admin/AdminTags.vue') },
       { path: 'comments', name: '管理-评论', component: () => import('../views/admin/AdminComments.vue') },
       { path: 'roles', name: '管理-角色', component: () => import('../views/admin/AdminRoles.vue') },
+      { path: 'permissions', name: '管理-权限', component: () => import('../views/admin/AdminPermissions.vue') },
     ],
   },
 ];
