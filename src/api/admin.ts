@@ -67,6 +67,34 @@ export const getRoleMenus = (roleId: number) => apiGet<number[]>(`/admin/roles/$
 export const updateRoleMenus = (roleId: number, menuIds: number[]) =>
   apiPut<void, number[]>(`/admin/roles/${roleId}/menus`, menuIds);
 
+// ===== Permissions =====
+export interface AdminPermission {
+  id: number;
+  name: string;
+  code: string;
+  resourceType: string;
+  description?: string;
+}
+
+export interface UserPermissionOverride {
+  id: number;
+  userId: number;
+  permissionId: number;
+  granted: boolean;
+}
+
+export const getAdminPermissions = () => apiGet<AdminPermission[]>('/admin/permissions');
+export const getRolePermissions = (roleId: number) =>
+  apiGet<number[]>(`/admin/permissions/roles/${roleId}`);
+export const updateRolePermissions = (roleId: number, permissionIds: number[]) =>
+  apiPut<void, number[]>(`/admin/permissions/roles/${roleId}`, permissionIds);
+export const getUserPermissionOverrides = (userId: number) =>
+  apiGet<UserPermissionOverride[]>(`/admin/permissions/users/${userId}`);
+export const setUserPermission = (userId: number, permissionId: number, granted: boolean) =>
+  apiPut<void, { granted: boolean }>(`/admin/permissions/users/${userId}/${permissionId}`, { granted });
+export const deleteUserPermission = (userId: number, permissionId: number) =>
+  apiDelete<void>(`/admin/permissions/users/${userId}/${permissionId}`);
+
 // ===== Articles =====
 export interface AdminArticle {
   id: number;

@@ -23,4 +23,6 @@ public class UserResponse {
     private LocalDateTime createdAt;
     private LocalDateTime lastLoginAt;
     private List<String> roles;
+    /** 有效功能权限码列表 */
+    private List<String> permissions;
 }

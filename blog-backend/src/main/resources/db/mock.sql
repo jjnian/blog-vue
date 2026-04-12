@@ -103,25 +103,23 @@ INSERT INTO permissions (name, code, resource_type, resource_path) VALUES
 ('访问后台',         'MENU:ADMIN',        'MENU', '/admin')
 ON CONFLICT (code) DO NOTHING;
 
-INSERT INTO permissions (name, code, resource_type, resource_path) VALUES
-('View Articles',  'ARTICLE:VIEW',   'API', '/api/articles/**'),
-('Create Article', 'ARTICLE:CREATE', 'API', '/api/articles'),
-('Edit Article',   'ARTICLE:EDIT',   'API', '/api/articles/*'),
-('Delete Article', 'ARTICLE:DELETE', 'API', '/api/articles/*')
-ON CONFLICT (code) DO NOTHING;
-
-INSERT INTO permissions (name, code, resource_type, resource_path) VALUES
-('View Comments',  'COMMENT:VIEW',  'API', '/api/comments/**'),
-('Create Comment', 'COMMENT:CREATE','API', '/api/comments'),
-('Audit Comment',  'COMMENT:AUDIT', 'API', '/api/comments/*/audit')
-ON CONFLICT (code) DO NOTHING;
-
-INSERT INTO permissions (name, code, resource_type, resource_path) VALUES
-('Manage Users',    'USER:MANAGE',    'API', '/api/admin/users/**'),
-('Manage Roles',    'ROLE:MANAGE',    'API', '/api/admin/roles/**'),
-('Manage Menus',    'MENU:MANAGE',    'API', '/api/admin/menus/**'),
-('Manage Settings', 'SETTING:MANAGE', 'API', '/api/admin/settings/**')
-ON CONFLICT (code) DO NOTHING;
+-- Feature permissions (功能权限)
+INSERT INTO permissions (name, code, resource_type, description) VALUES
+('发布文章',         'ARTICLE:CREATE',      'FEATURE', '允许发布新文章'),
+('编辑文章',         'ARTICLE:EDIT',        'FEATURE', '允许编辑自己的文章'),
+('删除文章',         'ARTICLE:DELETE',      'FEATURE', '允许删除自己的文章'),
+('删除任意文章',     'ARTICLE:DELETE:ANY',  'FEATURE', '允许删除任何用户的文章（管理员）'),
+('发表评论',         'COMMENT:CREATE',      'FEATURE', '允许发表评论'),
+('删除评论',         'COMMENT:DELETE',      'FEATURE', '允许删除自己的评论'),
+('删除任意评论',     'COMMENT:DELETE:ANY',  'FEATURE', '允许删除任何用户的评论（管理员）'),
+('管理用户',         'USER:MANAGE',         'FEATURE', '允许管理用户账号'),
+('管理角色',         'ROLE:MANAGE',         'FEATURE', '允许管理角色和权限'),
+('管理内容',         'CONTENT:MANAGE',      'FEATURE', '允许管理文章/评论等内容'),
+('管理系统',         'SYSTEM:MANAGE',       'FEATURE', '允许管理系统设置')
+ON CONFLICT (code) DO UPDATE SET
+    name         = EXCLUDED.name,
+    resource_type = 'FEATURE',
+    description  = EXCLUDED.description;
 
 -- ============================================================
 -- Role-menu assignments
@@ -157,6 +155,42 @@ INSERT INTO role_menus (role_id, menu_id)
 SELECT r.id, m.id FROM roles r, menus m
 WHERE r.code = 'ADMIN'
   AND m.code IN ('ADMIN','ADMIN_USER','ADMIN_ROLE','ADMIN_ARTICLE','ADMIN_COMMENT','ADMIN_SETTING')
+ON CONFLICT DO NOTHING;
+
+-- ============================================================
+-- Role-permission assignments (功能权限)
+-- ============================================================
+
+-- SUPER_ADMIN gets all permissions
+INSERT INTO role_permissions (role_id, permission_id)
+SELECT r.id, p.id FROM roles r, permissions p
+WHERE r.code = 'SUPER_ADMIN' AND p.resource_type = 'FEATURE'
+ON CONFLICT DO NOTHING;
+
+-- ADMIN gets all feature permissions
+INSERT INTO role_permissions (role_id, permission_id)
+SELECT r.id, p.id FROM roles r, permissions p
+WHERE r.code = 'ADMIN' AND p.resource_type = 'FEATURE'
+ON CONFLICT DO NOTHING;
+
+-- EDITOR gets article/comment create+edit+delete permissions
+INSERT INTO role_permissions (role_id, permission_id)
+SELECT r.id, p.id FROM roles r, permissions p
+WHERE r.code = 'EDITOR'
+  AND p.code IN ('ARTICLE:CREATE','ARTICLE:EDIT','ARTICLE:DELETE','COMMENT:CREATE','COMMENT:DELETE')
+ON CONFLICT DO NOTHING;
+
+-- USER gets basic create/delete own content permissions
+INSERT INTO role_permissions (role_id, permission_id)
+SELECT r.id, p.id FROM roles r, permissions p
+WHERE r.code = 'USER'
+  AND p.code IN ('ARTICLE:CREATE','ARTICLE:EDIT','ARTICLE:DELETE','COMMENT:CREATE','COMMENT:DELETE')
+ON CONFLICT DO NOTHING;
+
+-- GUEST gets comment create permission only
+INSERT INTO role_permissions (role_id, permission_id)
+SELECT r.id, p.id FROM roles r, permissions p
+WHERE r.code = 'GUEST' AND p.code = 'COMMENT:CREATE'
 ON CONFLICT DO NOTHING;
 
 -- ============================================================
