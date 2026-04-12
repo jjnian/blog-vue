@@ -1,3 +1,4 @@
+import JSEncrypt from 'jsencrypt';
 import { apiGet, apiPost } from './http';
 
 export interface LoginRequest {
@@ -36,3 +37,20 @@ export const register = (data: RegisterRequest) =>
 
 export const getCurrentUser = () =>
   apiGet<AuthResponse['user']>('/auth/me');
+
+export const getPublicKey = () =>
+  apiGet<string>('/auth/public-key');
+
+/**
+ * 使用RSA公钥加密密码
+ */
+export const encryptPassword = async (password: string): Promise<string> => {
+  const publicKey = await getPublicKey();
+  const encrypt = new JSEncrypt();
+  encrypt.setPublicKey(publicKey);
+  const encrypted = encrypt.encrypt(password);
+  if (!encrypted) {
+    throw new Error('密码加密失败');
+  }
+  return encrypted;
+};

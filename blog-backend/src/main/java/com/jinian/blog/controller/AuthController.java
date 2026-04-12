@@ -6,6 +6,7 @@ import com.jinian.blog.dto.request.RegisterRequest;
 import com.jinian.blog.dto.response.JwtResponse;
 import com.jinian.blog.dto.response.UserResponse;
 import com.jinian.blog.service.AuthService;
+import com.jinian.blog.util.RsaUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -22,6 +23,7 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     private final AuthService authService;
+    private final RsaUtils rsaUtils;
 
     @Operation(summary = "用户登录")
     @PostMapping("/login")
@@ -45,5 +47,11 @@ public class AuthController {
     @GetMapping("/me")
     public Result<UserResponse> getCurrentUser() {
         return Result.success(authService.getCurrentUser());
+    }
+
+    @Operation(summary = "获取RSA公钥")
+    @GetMapping("/public-key")
+    public Result<String> getPublicKey() {
+        return Result.success(rsaUtils.getPublicKeyBase64());
     }
 }

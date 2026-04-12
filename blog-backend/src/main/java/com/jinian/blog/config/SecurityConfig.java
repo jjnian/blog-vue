@@ -43,7 +43,7 @@ public class SecurityConfig {
                         .authenticationEntryPoint(jwtAuthenticationEntryPoint))
                 .authorizeHttpRequests(auth -> auth
                         // 公开接口 - 认证
-                        .requestMatchers("/auth/login", "/auth/register", "/auth/refresh").permitAll()
+                        .requestMatchers("/auth/login", "/auth/register", "/auth/refresh", "/auth/public-key").permitAll()
                         // 公开接口 - 文章（GET公开，POST/PUT/DELETE需要认证）
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/articles", "/articles/**").permitAll()
                         // 公开接口 - 分类、标签

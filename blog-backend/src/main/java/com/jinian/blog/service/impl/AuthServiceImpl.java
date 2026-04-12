@@ -12,6 +12,7 @@ import com.jinian.blog.mapper.UserMapper;
 import com.jinian.blog.security.UserDetailsImpl;
 import com.jinian.blog.service.AuthService;
 import com.jinian.blog.util.JwtUtils;
+import com.jinian.blog.util.RsaUtils;
 import com.jinian.blog.util.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -37,6 +38,7 @@ public class AuthServiceImpl implements AuthService {
     private final RoleMapper roleMapper;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtils jwtUtils;
+    private final RsaUtils rsaUtils;
     private final AuthenticationManager authenticationManager;
 
     @Value("${jwt.expiration}")
@@ -44,8 +46,10 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public JwtResponse login(LoginRequest request) {
+        // RSA解密密码
+        String rawPassword = rsaUtils.decrypt(request.getPassword());
         Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword())
+                new UsernamePasswordAuthenticationToken(request.getUsername(), rawPassword)
         );
 
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
@@ -75,9 +79,11 @@ public class AuthServiceImpl implements AuthService {
         }
 
         // 创建用户
+        // RSA解密密码
+        String rawPassword = rsaUtils.decrypt(request.getPassword());
         User user = new User();
         user.setUsername(request.getUsername());
-        user.setPassword(passwordEncoder.encode(request.getPassword()));
+        user.setPassword(passwordEncoder.encode(rawPassword));
         user.setEmail(request.getEmail());
         user.setNickname(request.getNickname() != null ? request.getNickname() : request.getUsername());
         user.setStatus("ACTIVE");

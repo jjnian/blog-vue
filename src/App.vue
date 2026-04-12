@@ -136,12 +136,8 @@ const normalizeMenuItem = (menu: { name: string; path?: string; icon?: string; v
 };
 
 const loadNavMenus = async () => {
-  if (!auth.isLoggedIn.value) {
-    navItems.value = fallbackNavItems;
-    return;
-  }
   try {
-    const menus = await getUserMenus();
+    const menus = auth.isLoggedIn.value ? await getUserMenus() : await getPublicMenus();
     const mapped = menus
       .map((menu) => normalizeMenuItem(menu))
       .filter((menu): menu is NavItem => Boolean(menu));

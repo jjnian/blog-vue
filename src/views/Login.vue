@@ -2,7 +2,7 @@
 import { ref, reactive } from 'vue';
 import { useRouter } from 'vue-router';
 import { User, Lock, Mail, Eye, EyeOff, LogIn, UserPlus } from 'lucide-vue-next';
-import { login, register } from '@/api/auth';
+import { login, register, encryptPassword } from '@/api/auth';
 import { useAuth } from '@/stores/auth';
 
 const router = useRouter();
@@ -24,7 +24,8 @@ const handleLogin = async () => {
   loading.value = true;
   error.value = '';
   try {
-    const res = await login({ username: loginForm.username, password: loginForm.password });
+    const encryptedPassword = await encryptPassword(loginForm.password);
+    const res = await login({ username: loginForm.username, password: encryptedPassword });
     auth.setAuth(res.accessToken, res.refreshToken, {
       id: res.user.id,
       username: res.user.username,
@@ -65,9 +66,10 @@ const handleRegister = async () => {
   loading.value = true;
   error.value = '';
   try {
+    const encryptedPassword = await encryptPassword(registerForm.password);
     const res = await register({
       username: registerForm.username,
-      password: registerForm.password,
+      password: encryptedPassword,
       email: registerForm.email,
       nickname: registerForm.nickname || undefined,
     });
