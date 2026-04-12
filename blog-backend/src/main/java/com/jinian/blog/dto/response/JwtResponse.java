@@ -27,5 +27,7 @@ public class JwtResponse {
         private String nickname;
         private String avatar;
         private List<String> roles;
+        /** 用户有效功能权限码列表 */
+        private List<String> permissions;
     }
 }

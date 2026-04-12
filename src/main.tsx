@@ -3,6 +3,7 @@ import App from './App.vue';
 import router from './router';
 import './index.css';
 import mediumZoom from 'medium-zoom';
+import { permissionDirective } from './directives/permission';
 
 const app = createApp(App);
 
@@ -20,6 +21,8 @@ app.directive('zoom', {
     zoom.detach(el);
   }
 });
+
+app.directive('permission', permissionDirective);
 
 app.use(router);
 app.mount('#root');

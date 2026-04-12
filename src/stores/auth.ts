@@ -7,6 +7,8 @@ export interface UserInfo {
   avatar?: string;
   email?: string;
   roles: string[];
+  /** 用户有效功能权限码列表 */
+  permissions?: string[];
 }
 
 const state = reactive({
@@ -31,6 +33,14 @@ export const useAuth = () => {
     state.user?.roles?.some((r) => r === 'ADMIN' || r === 'SUPER_ADMIN') ?? false
   );
 
+  const hasPermission = (code: string): boolean => {
+    if (isAdmin.value) return true; // admin 拥有所有权限
+    return state.user?.permissions?.includes(code) ?? false;
+  };
+
+  const hasAnyPermission = (...codes: string[]): boolean =>
+    codes.some((c) => hasPermission(c));
+
   const setAuth = (token: string, refreshToken: string, user: UserInfo) => {
     state.token = token;
     state.refreshToken = refreshToken;
@@ -54,6 +64,8 @@ export const useAuth = () => {
   return {
     isLoggedIn,
     isAdmin,
+    hasPermission,
+    hasAnyPermission,
     user: computed(() => state.user),
     token: computed(() => state.token),
     setAuth,

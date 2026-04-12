@@ -1,7 +1,12 @@
 <script setup lang="ts">
 import { ref, onMounted, reactive, computed } from 'vue';
-import { Plus, Pencil, Trash2, X, Shield, Settings } from 'lucide-vue-next';
-import { getAdminRoles, createRole, updateRole, deleteRole, getAdminMenus, getRoleMenus, updateRoleMenus } from '@/api/admin';
+import { Plus, Pencil, Trash2, X, Shield, Settings, KeyRound } from 'lucide-vue-next';
+import {
+  getAdminRoles, createRole, updateRole, deleteRole,
+  getAdminMenus, getRoleMenus, updateRoleMenus,
+  getAdminPermissions, getRolePermissions, updateRolePermissions,
+  type AdminPermission,
+} from '@/api/admin';
 import type { AdminRole } from '@/api/admin';
 import type { MenuResponse } from '@/api/blog';
 
@@ -16,6 +21,11 @@ const menuRole = ref<AdminRole | null>(null);
 const menuTree = ref<MenuResponse[]>([]);
 const selectedMenuIds = ref<Set<number>>(new Set());
 const menuParentMap = ref<Record<number, number | null>>({});
+// 功能权限 tab
+const permTab = ref<'menus' | 'features'>('menus');
+const allPermissions = ref<AdminPermission[]>([]);
+const selectedPermIds = ref<Set<number>>(new Set());
+const savingPerms = ref(false);
 
 const form = reactive({ name: '', code: '', description: '' });
 
@@ -135,8 +145,53 @@ const loadRoleMenus = async (role: AdminRole) => {
 
 const openMenuPermissions = async (role: AdminRole) => {
   menuRole.value = role;
+  permTab.value = 'menus';
   showMenusModal.value = true;
   await loadRoleMenus(role);
+};
+
+const loadRoleFeaturePerms = async (role: AdminRole) => {
+  menuLoading.value = true;
+  try {
+    const [perms, rolePermIds] = await Promise.all([
+      getAdminPermissions(),
+      getRolePermissions(role.id),
+    ]);
+    allPermissions.value = perms;
+    selectedPermIds.value = new Set(rolePermIds);
+  } catch {
+    allPermissions.value = [];
+    selectedPermIds.value = new Set();
+  } finally {
+    menuLoading.value = false;
+  }
+};
+
+const switchTab = async (tab: 'menus' | 'features') => {
+  permTab.value = tab;
+  if (tab === 'features' && menuRole.value) {
+    await loadRoleFeaturePerms(menuRole.value);
+  }
+};
+
+const togglePerm = (permId: number, checked: boolean) => {
+  const next = new Set(selectedPermIds.value);
+  if (checked) next.add(permId);
+  else next.delete(permId);
+  selectedPermIds.value = next;
+};
+
+const saveRoleFeaturePerms = async () => {
+  if (!menuRole.value) return;
+  savingPerms.value = true;
+  try {
+    await updateRolePermissions(menuRole.value.id, Array.from(selectedPermIds.value));
+    showMenusModal.value = false;
+  } catch {
+    // ignore
+  } finally {
+    savingPerms.value = false;
+  }
 };
 
 const toggleMenu = (menuId: number, checked: boolean) => {
@@ -204,7 +259,7 @@ const roleColorClass = (code: string) => {
             <Shield :size="18" />
           </div>
           <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-            <button @click="openMenuPermissions(role)" class="p-1.5 rounded-lg hover:bg-blue-50 text-gray-400 hover:text-[#49b1f5] transition-all">
+            <button @click="openMenuPermissions(role)" class="p-1.5 rounded-lg hover:bg-blue-50 text-gray-400 hover:text-[#49b1f5] transition-all" title="权限配置">
               <Settings :size="13" />
             </button>
             <button @click="openEdit(role)" class="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-[#49b1f5] transition-all">
@@ -269,13 +324,14 @@ const roleColorClass = (code: string) => {
       </div>
     </div>
 
-    <!-- Menu permissions modal -->
+    <!-- Role permissions modal (menus + feature perms) -->
     <div v-if="showMenusModal" class="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div class="absolute inset-0 bg-black/20 backdrop-blur-sm" @click="showMenusModal = false"></div>
       <div class="relative bg-white rounded-2xl shadow-2xl border border-gray-100 p-6 w-full max-w-2xl max-h-[85vh] overflow-hidden flex flex-col">
-        <div class="flex items-center justify-between mb-5">
+        <!-- Header -->
+        <div class="flex items-center justify-between mb-4">
           <div>
-            <h3 class="text-base font-bold text-[#2c3e50]">菜单权限</h3>
+            <h3 class="text-base font-bold text-[#2c3e50]">角色权限配置</h3>
             <p class="text-xs text-gray-400 mt-1">{{ menuRole?.name }} / {{ menuRole?.code }}</p>
           </div>
           <button @click="showMenusModal = false" class="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 transition-all">
@@ -283,12 +339,32 @@ const roleColorClass = (code: string) => {
           </button>
         </div>
 
+        <!-- Tabs -->
+        <div class="flex gap-1 p-1 bg-gray-100/80 rounded-xl mb-4">
+          <button
+            @click="switchTab('menus')"
+            class="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold transition-all"
+            :class="permTab === 'menus' ? 'bg-white text-[#49b1f5] shadow-sm' : 'text-gray-400 hover:text-gray-600'"
+          >
+            <Settings :size="13" /> 菜单路由
+          </button>
+          <button
+            @click="switchTab('features')"
+            class="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold transition-all"
+            :class="permTab === 'features' ? 'bg-white text-[#49b1f5] shadow-sm' : 'text-gray-400 hover:text-gray-600'"
+          >
+            <KeyRound :size="13" /> 功能权限
+          </button>
+        </div>
+
+        <!-- Tab content -->
         <div class="flex-1 overflow-y-auto pr-1">
           <div v-if="menuLoading" class="space-y-3">
             <div v-for="i in 6" :key="i" class="h-12 rounded-xl bg-gray-100 animate-pulse"></div>
           </div>
 
-          <div v-else class="space-y-2">
+          <!-- Menus tab -->
+          <div v-else-if="permTab === 'menus'" class="space-y-2">
             <label
               v-for="menu in flattenedMenus"
               :key="menu.id"
@@ -306,16 +382,50 @@ const roleColorClass = (code: string) => {
               <span v-if="menu.path" class="ml-auto text-[10px] text-gray-300 font-mono">{{ menu.path }}</span>
             </label>
           </div>
+
+          <!-- Feature permissions tab -->
+          <div v-else class="space-y-2">
+            <label
+              v-for="perm in allPermissions"
+              :key="perm.id"
+              class="flex items-center gap-3 px-4 py-3 rounded-xl border transition-all cursor-pointer"
+              :class="selectedPermIds.has(perm.id)
+                ? 'border-[#49b1f5]/30 bg-[#49b1f5]/5'
+                : 'border-gray-100 hover:bg-gray-50'"
+            >
+              <input
+                type="checkbox"
+                :checked="selectedPermIds.has(perm.id)"
+                @change="togglePerm(perm.id, ($event.target as HTMLInputElement).checked)"
+                class="w-4 h-4 accent-[#49b1f5]"
+              />
+              <div class="flex-1 min-w-0">
+                <div class="text-sm font-medium text-[#2c3e50]">{{ perm.name }}</div>
+                <div class="text-[10px] font-mono text-gray-400">{{ perm.code }}</div>
+              </div>
+              <span v-if="perm.description" class="text-[10px] text-gray-300 truncate max-w-[140px]">{{ perm.description }}</span>
+            </label>
+          </div>
         </div>
 
+        <!-- Footer -->
         <div class="flex gap-3 mt-6 pt-4 border-t border-gray-100">
           <button @click="showMenusModal = false" class="flex-1 py-2.5 rounded-xl border border-gray-100 text-sm text-gray-500 hover:bg-gray-50 transition-colors">取消</button>
           <button
+            v-if="permTab === 'menus'"
             @click="saveRoleMenus"
             :disabled="savingMenus || menuLoading"
             class="flex-1 py-2.5 rounded-xl bg-[#49b1f5] text-white text-sm font-medium hover:bg-[#3a9de8] transition-colors disabled:opacity-50"
           >
             {{ savingMenus ? '保存中...' : '保存菜单' }}
+          </button>
+          <button
+            v-else
+            @click="saveRoleFeaturePerms"
+            :disabled="savingPerms || menuLoading"
+            class="flex-1 py-2.5 rounded-xl bg-[#49b1f5] text-white text-sm font-medium hover:bg-[#3a9de8] transition-colors disabled:opacity-50"
+          >
+            {{ savingPerms ? '保存中...' : '保存权限' }}
           </button>
         </div>
       </div>
