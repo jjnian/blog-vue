@@ -242,38 +242,59 @@ const roleColorClass = (code: string) => {
       </button>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-      <div v-if="loading" v-for="i in 3" :key="i" class="bg-white/80 rounded-2xl border border-white/80 shadow-sm p-5 animate-pulse">
-        <div class="h-5 bg-gray-100 rounded w-1/2 mb-3"></div>
-        <div class="h-3 bg-gray-100 rounded w-1/3 mb-2"></div>
-        <div class="h-3 bg-gray-100 rounded w-3/4"></div>
-      </div>
-
-      <div
-        v-for="role in roles"
-        :key="role.id"
-        class="bg-white/80 backdrop-blur-xl rounded-2xl border border-white/80 shadow-sm p-5 hover:shadow-md hover:-translate-y-0.5 transition-all group"
-      >
-        <div class="flex items-start justify-between mb-3">
-          <div class="w-10 h-10 rounded-xl flex items-center justify-center" :class="roleColorClass(role.code)">
-            <Shield :size="18" />
-          </div>
-          <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-            <button @click="openMenuPermissions(role)" class="p-1.5 rounded-lg hover:bg-blue-50 text-gray-400 hover:text-[#49b1f5] transition-all" title="权限配置">
-              <Settings :size="13" />
-            </button>
-            <button @click="openEdit(role)" class="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-[#49b1f5] transition-all">
-              <Pencil :size="13" />
-            </button>
-            <button @click="handleDelete(role)" class="p-1.5 rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-400 transition-all">
-              <Trash2 :size="13" />
-            </button>
-          </div>
-        </div>
-        <h3 class="font-semibold text-[#2c3e50] mb-1">{{ role.name }}</h3>
-        <span class="inline-block px-2 py-0.5 rounded-lg text-xs font-mono font-medium mb-2" :class="roleColorClass(role.code)">{{ role.code }}</span>
-        <p v-if="role.description" class="text-xs text-gray-400 leading-relaxed">{{ role.description }}</p>
-      </div>
+    <div class="bg-white/80 backdrop-blur-xl rounded-2xl border border-white/80 shadow-sm overflow-hidden">
+      <table class="w-full">
+        <thead class="bg-gray-50/80 border-b border-gray-100">
+          <tr>
+            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">角色</th>
+            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">代码</th>
+            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">描述</th>
+            <th class="px-6 py-3 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider">操作</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+          <tr v-if="loading" v-for="i in 3" :key="i" class="animate-pulse">
+            <td class="px-6 py-4"><div class="h-5 bg-gray-100 rounded w-24"></div></td>
+            <td class="px-6 py-4"><div class="h-5 bg-gray-100 rounded w-16"></div></td>
+            <td class="px-6 py-4"><div class="h-4 bg-gray-100 rounded w-48"></div></td>
+            <td class="px-6 py-4"></td>
+          </tr>
+          <tr
+            v-for="role in roles"
+            :key="role.id"
+            class="hover:bg-gray-50/50 transition-colors group"
+          >
+            <td class="px-6 py-4">
+              <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-xl flex items-center justify-center" :class="roleColorClass(role.code)">
+                  <Shield :size="18" />
+                </div>
+                <span class="font-semibold text-[#2c3e50]">{{ role.name }}</span>
+              </div>
+            </td>
+            <td class="px-6 py-4">
+              <span class="inline-block px-2 py-1 rounded-lg text-xs font-mono font-medium" :class="roleColorClass(role.code)">{{ role.code }}</span>
+            </td>
+            <td class="px-6 py-4">
+              <p v-if="role.description" class="text-sm text-gray-400">{{ role.description }}</p>
+              <span v-else class="text-sm text-gray-300">-</span>
+            </td>
+            <td class="px-6 py-4">
+              <div class="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <button @click="openMenuPermissions(role)" class="p-2 rounded-lg hover:bg-blue-50 text-gray-400 hover:text-[#49b1f5] transition-all" title="权限配置">
+                  <Settings :size="14" />
+                </button>
+                <button @click="openEdit(role)" class="p-2 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-[#49b1f5] transition-all" title="编辑">
+                  <Pencil :size="14" />
+                </button>
+                <button @click="handleDelete(role)" class="p-2 rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-400 transition-all" title="删除">
+                  <Trash2 :size="14" />
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
 
     <!-- Modal -->

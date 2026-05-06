@@ -208,45 +208,45 @@ const renderMarkdown = (text: string) => {
         <!-- Main Editor -->
         <div class="lg:col-span-2 space-y-4">
           <!-- Title -->
-          <div class="bg-white/80 backdrop-blur-xl rounded-2xl border border-white/80 shadow-sm p-6">
+          <div class="bg-[#f8f9fa] rounded-2xl border border-gray-200 shadow-sm p-6">
             <input
               v-model="form.title"
               type="text"
               placeholder="输入文章标题..."
-              class="w-full text-2xl md:text-3xl font-bold text-[#2c3e50] placeholder-gray-200 border-none outline-none bg-transparent leading-tight"
+              class="w-full text-2xl md:text-3xl font-bold text-[#2c3e50] placeholder-gray-300 border-none outline-none bg-transparent leading-tight"
             />
             <input
               v-model="form.excerpt"
               type="text"
               placeholder="文章摘要（可选，留空则自动截取正文）"
-              class="w-full mt-3 text-sm text-gray-400 placeholder-gray-200 border-none outline-none bg-transparent"
+              class="w-full mt-3 text-sm text-gray-500 placeholder-gray-300 border-none outline-none bg-transparent"
             />
           </div>
 
           <!-- Editor / Preview -->
-          <div class="bg-white/80 backdrop-blur-xl rounded-2xl border border-white/80 shadow-sm overflow-hidden">
+          <div class="bg-[#f8f9fa] rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
             <!-- Toolbar -->
-            <div v-if="!showPreview" class="flex items-center gap-1 px-4 py-2 border-b border-gray-100 flex-wrap">
-              <button @click="insertMarkdown('**', '**', '粗体')" class="p-2 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-[#49b1f5] transition-all" title="粗体">
+            <div v-if="!showPreview" class="flex items-center gap-1 px-4 py-2 border-b border-gray-200 flex-wrap bg-white">
+              <button @click="insertMarkdown('**', '**', '粗体')" class="p-2 rounded-lg hover:bg-gray-100 text-gray-500 hover:text-[#49b1f5] transition-all" title="粗体">
                 <Bold :size="15" />
               </button>
-              <button @click="insertMarkdown('*', '*', '斜体')" class="p-2 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-[#49b1f5] transition-all" title="斜体">
+              <button @click="insertMarkdown('*', '*', '斜体')" class="p-2 rounded-lg hover:bg-gray-100 text-gray-500 hover:text-[#49b1f5] transition-all" title="斜体">
                 <Italic :size="15" />
               </button>
-              <button @click="insertMarkdown('`', '`', '代码')" class="p-2 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-[#49b1f5] transition-all" title="行内代码">
+              <button @click="insertMarkdown('`', '`', '代码')" class="p-2 rounded-lg hover:bg-gray-100 text-gray-500 hover:text-[#49b1f5] transition-all" title="行内代码">
                 <Code :size="15" />
               </button>
-              <button @click="insertMarkdown('\n- ', '', '列表项')" class="p-2 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-[#49b1f5] transition-all" title="列表">
+              <button @click="insertMarkdown('\n- ', '', '列表项')" class="p-2 rounded-lg hover:bg-gray-100 text-gray-500 hover:text-[#49b1f5] transition-all" title="列表">
                 <List :size="15" />
               </button>
-              <button @click="insertMarkdown('[', '](url)', '链接文字')" class="p-2 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-[#49b1f5] transition-all" title="链接">
+              <button @click="insertMarkdown('[', '](url)', '链接文字')" class="p-2 rounded-lg hover:bg-gray-100 text-gray-500 hover:text-[#49b1f5] transition-all" title="链接">
                 <LinkIcon :size="15" />
               </button>
-              <div class="ml-auto text-xs text-gray-300 font-mono">{{ wordCount }} 字</div>
+              <div class="ml-auto text-xs text-gray-400 font-mono">{{ wordCount }} 字</div>
             </div>
 
             <!-- Editor -->
-            <div v-if="!showPreview" class="p-4">
+            <div v-if="!showPreview" class="p-4 bg-white">
               <textarea
                 id="content-editor"
                 v-model="form.content"
@@ -261,12 +261,12 @@ const renderMarkdown = (text: string) => {
 - 另一项
 
 [链接文字](url)"
-                class="w-full min-h-[400px] text-sm text-[#2c3e50] placeholder-gray-200 border-none outline-none bg-transparent resize-none leading-relaxed font-mono"
+                class="w-full min-h-[400px] text-sm text-[#2c3e50] placeholder-gray-300 border-none outline-none bg-transparent resize-none leading-relaxed font-mono"
               ></textarea>
             </div>
 
             <!-- Preview -->
-            <div v-else class="p-6 min-h-[400px]">
+            <div v-else class="p-6 min-h-[400px] bg-white">
               <div
                 v-if="form.content"
                 class="prose prose-sm max-w-none text-[#2c3e50] leading-relaxed"
@@ -280,8 +280,8 @@ const renderMarkdown = (text: string) => {
         <!-- Sidebar -->
         <div class="space-y-4">
           <!-- Status -->
-          <div class="bg-white/80 backdrop-blur-xl rounded-2xl border border-white/80 shadow-sm p-5">
-            <h3 class="text-xs font-bold tracking-widest uppercase text-gray-400 mb-3">发布设置</h3>
+          <div class="bg-[#f8f9fa] rounded-2xl border border-gray-200 shadow-sm p-5">
+            <h3 class="text-xs font-bold tracking-widest uppercase text-gray-500 mb-3">发布设置</h3>
             <div class="space-y-2">
               <button
                 v-for="opt in statusOptions"
@@ -289,8 +289,8 @@ const renderMarkdown = (text: string) => {
                 @click="form.status = opt.value as typeof form.status"
                 class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm transition-all border"
                 :class="form.status === opt.value
-                  ? 'bg-[#49b1f5]/10 border-[#49b1f5]/30 text-[#49b1f5] font-medium'
-                  : 'bg-gray-50/50 border-transparent text-gray-500 hover:bg-gray-100'"
+                  ? 'bg-[#49b1f5]/15 border-[#49b1f5]/40 text-[#49b1f5] font-medium'
+                  : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50 hover:border-[#49b1f5]/30'"
               >
                 <span>{{ opt.icon }}</span>
                 <span>{{ opt.label }}</span>
@@ -298,11 +298,11 @@ const renderMarkdown = (text: string) => {
             </div>
 
             <div class="mt-4 flex items-center justify-between">
-              <span class="text-sm text-gray-500">允许评论</span>
+              <span class="text-sm text-gray-600">允许评论</span>
               <button
                 @click="form.allowComment = !form.allowComment"
                 class="w-11 h-6 rounded-full transition-all duration-300 relative"
-                :class="form.allowComment ? 'bg-[#49b1f5]' : 'bg-gray-200'"
+                :class="form.allowComment ? 'bg-[#49b1f5]' : 'bg-gray-300'"
               >
                 <span class="absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-all duration-300"
                   :class="form.allowComment ? 'left-5.5' : 'left-0.5'"
@@ -312,51 +312,51 @@ const renderMarkdown = (text: string) => {
           </div>
 
           <!-- Cover Image -->
-          <div class="bg-white/80 backdrop-blur-xl rounded-2xl border border-white/80 shadow-sm p-5">
-            <h3 class="text-xs font-bold tracking-widest uppercase text-gray-400 mb-3">封面图片</h3>
+          <div class="bg-[#f8f9fa] rounded-2xl border border-gray-200 shadow-sm p-5">
+            <h3 class="text-xs font-bold tracking-widest uppercase text-gray-500 mb-3">封面图片</h3>
             <div v-if="form.coverImage" class="mb-3 rounded-xl overflow-hidden relative group">
               <img :src="form.coverImage" class="w-full h-32 object-cover" alt="封面" />
-              <button @click="form.coverImage = ''" class="absolute top-2 right-2 p-1 rounded-lg bg-white/80 text-red-400 opacity-0 group-hover:opacity-100 transition-all">
+              <button @click="form.coverImage = ''" class="absolute top-2 right-2 p-1 rounded-lg bg-white/90 text-red-400 opacity-0 group-hover:opacity-100 transition-all shadow">
                 <X :size="14" />
               </button>
             </div>
             <div class="flex items-center gap-2">
-              <Image :size="15" class="text-gray-300" />
+              <Image :size="15" class="text-gray-400" />
               <input
                 v-model="form.coverImage"
                 type="url"
                 placeholder="封面图片 URL"
-                class="flex-1 text-sm text-[#2c3e50] placeholder-gray-200 border-b border-gray-100 focus:border-[#49b1f5] outline-none pb-1 bg-transparent transition-colors"
+                class="flex-1 text-sm text-[#2c3e50] placeholder-gray-300 border-b border-gray-200 focus:border-[#49b1f5] outline-none pb-1 bg-transparent transition-colors"
               />
             </div>
           </div>
 
           <!-- Category -->
-          <div class="bg-white/80 backdrop-blur-xl rounded-2xl border border-white/80 shadow-sm p-5">
-            <h3 class="text-xs font-bold tracking-widest uppercase text-gray-400 mb-3 flex items-center gap-2">
+          <div class="bg-[#f8f9fa] rounded-2xl border border-gray-200 shadow-sm p-5" style="position: relative; z-index: 30;">
+            <h3 class="text-xs font-bold tracking-widest uppercase text-gray-500 mb-3 flex items-center gap-2">
               <LayoutGrid :size="13" /> 分类
             </h3>
             <div class="relative">
               <button
                 @click="showCategoryDropdown = !showCategoryDropdown"
-                class="w-full flex items-center justify-between px-3 py-2.5 rounded-xl border border-gray-100 bg-gray-50/50 text-sm text-gray-500 hover:border-[#49b1f5]/30 transition-all"
+                class="w-full flex items-center justify-between px-3 py-2.5 rounded-xl border border-gray-200 bg-white text-sm text-gray-700 hover:border-[#49b1f5]/40 transition-all shadow-sm"
               >
-                <span :class="selectedCategory ? 'text-[#2c3e50]' : 'text-gray-300'">
+                <span :class="selectedCategory ? 'text-[#2c3e50] font-semibold' : 'text-gray-400'">
                   {{ selectedCategory?.name || '选择分类' }}
                 </span>
-                <ChevronDown :size="14" class="text-gray-300" :class="{ 'rotate-180': showCategoryDropdown }" />
+                <ChevronDown :size="14" class="text-gray-400" :class="{ 'rotate-180': showCategoryDropdown }" />
               </button>
-              <div v-if="showCategoryDropdown" class="absolute top-full left-0 right-0 mt-1 bg-white rounded-xl border border-gray-100 shadow-lg z-20 max-h-48 overflow-y-auto">
+              <div v-if="showCategoryDropdown" class="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl border border-gray-200 shadow-xl z-50 max-h-48 overflow-y-auto" style="position: absolute;">
                 <button
                   @click="form.categoryId = null; showCategoryDropdown = false"
-                  class="w-full text-left px-3 py-2.5 text-sm text-gray-300 hover:bg-gray-50 hover:text-[#49b1f5] transition-all"
+                  class="w-full text-left px-3 py-2.5 text-sm text-gray-600 hover:bg-gray-100 hover:text-[#49b1f5] transition-all border-b border-gray-100"
                 >不选择分类</button>
                 <button
                   v-for="cat in categories"
                   :key="cat.id"
                   @click="form.categoryId = cat.id; showCategoryDropdown = false"
-                  class="w-full text-left px-3 py-2.5 text-sm hover:bg-gray-50 transition-all flex items-center gap-2"
-                  :class="form.categoryId === cat.id ? 'text-[#49b1f5] font-medium' : 'text-[#2c3e50]'"
+                  class="w-full text-left px-3 py-2.5 text-sm hover:bg-gray-100 transition-all flex items-center gap-2 border-b border-gray-100 last:border-0"
+                  :class="form.categoryId === cat.id ? 'text-[#49b1f5] font-semibold bg-[#49b1f5]/10' : 'text-gray-700'"
                 >
                   <span v-if="cat.color" class="w-2 h-2 rounded-full flex-shrink-0" :style="{ background: cat.color }"></span>
                   {{ cat.name }}
@@ -366,36 +366,36 @@ const renderMarkdown = (text: string) => {
           </div>
 
           <!-- Tags -->
-          <div class="bg-white/80 backdrop-blur-xl rounded-2xl border border-white/80 shadow-sm p-5">
-            <h3 class="text-xs font-bold tracking-widest uppercase text-gray-400 mb-3 flex items-center gap-2">
+          <div class="bg-[#f8f9fa] rounded-2xl border border-gray-200 shadow-sm p-5" style="position: relative; z-index: 10;">
+            <h3 class="text-xs font-bold tracking-widest uppercase text-gray-500 mb-3 flex items-center gap-2">
               <TagIcon :size="13" /> 标签
             </h3>
             <div class="flex flex-wrap gap-2 mb-3">
               <span
                 v-for="tag in selectedTags"
                 :key="tag.id"
-                class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-[#49b1f5]/10 text-[#49b1f5] cursor-pointer hover:bg-red-50 hover:text-red-400 transition-colors"
+                class="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium bg-[#49b1f5]/15 text-[#49b1f5] cursor-pointer hover:bg-red-50 hover:text-red-400 transition-colors border border-[#49b1f5]/20"
                 @click="toggleTag(tag.id)"
               >
                 # {{ tag.name }} <X :size="10" />
               </span>
-              <span v-if="selectedTags.length === 0" class="text-xs text-gray-300">暂无选中标签</span>
+              <span v-if="selectedTags.length === 0" class="text-xs text-gray-500">暂无选中标签</span>
             </div>
             <div class="relative">
               <button
                 @click="showTagDropdown = !showTagDropdown"
-                class="w-full flex items-center justify-between px-3 py-2.5 rounded-xl border border-gray-100 bg-gray-50/50 text-sm text-gray-400 hover:border-[#49b1f5]/30 transition-all"
+                class="w-full flex items-center justify-between px-3 py-2.5 rounded-xl border border-gray-200 bg-white text-sm text-gray-700 hover:border-[#49b1f5]/40 transition-all shadow-sm"
               >
                 <span>添加标签</span>
-                <ChevronDown :size="14" class="text-gray-300" :class="{ 'rotate-180': showTagDropdown }" />
+                <ChevronDown :size="14" class="text-gray-400" :class="{ 'rotate-180': showTagDropdown }" />
               </button>
-              <div v-if="showTagDropdown" class="absolute top-full left-0 right-0 mt-1 bg-white rounded-xl border border-gray-100 shadow-lg z-20 max-h-40 overflow-y-auto">
+              <div v-if="showTagDropdown" class="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl border border-gray-200 shadow-xl z-[100] max-h-40 overflow-y-auto" style="position: absolute;">
                 <button
                   v-for="tag in tags"
                   :key="tag.id"
                   @click="toggleTag(tag.id)"
-                  class="w-full text-left px-3 py-2 text-sm hover:bg-gray-50 transition-all flex items-center gap-2"
-                  :class="form.tagIds.includes(tag.id) ? 'text-[#49b1f5] font-medium bg-[#49b1f5]/5' : 'text-[#2c3e50]'"
+                  class="w-full text-left px-3 py-2.5 text-sm hover:bg-gray-100 transition-all flex items-center gap-2 border-b border-gray-100 last:border-0"
+                  :class="form.tagIds.includes(tag.id) ? 'text-[#49b1f5] font-semibold bg-[#49b1f5]/10' : 'text-gray-700'"
                 >
                   <span v-if="tag.color" class="w-2 h-2 rounded-full flex-shrink-0" :style="{ background: tag.color }"></span>
                   # {{ tag.name }}

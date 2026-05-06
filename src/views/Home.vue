@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue';
-import { Volume2, Flame, MessageCircle, ChevronRight } from 'lucide-vue-next';
+import { Volume2, Flame, MessageCircle, ChevronRight, FileText } from 'lucide-vue-next';
 import { getArticles } from '@/api/blog';
 
 interface Post {
@@ -55,9 +55,18 @@ onMounted(async () => {
 <template>
   <div class="space-y-8">
     <!-- Welcome Banner -->
-    <div class="flex items-center gap-3 px-5 py-3 bg-white rounded-xl border border-gray-100 shadow-sm">
-      <Volume2 :size="15" class="text-[#49b1f5] flex-shrink-0" stroke-width="2" />
-      <span class="text-gray-500 text-sm">欢迎光临</span>
+    <div class="flex items-center justify-between gap-3 px-5 py-3 bg-white rounded-xl border border-gray-100 shadow-sm">
+      <div class="flex items-center gap-3">
+        <Volume2 :size="15" class="text-[#49b1f5] flex-shrink-0" stroke-width="2" />
+        <span class="text-gray-500 text-sm">欢迎光临</span>
+      </div>
+      <router-link
+        to="/write"
+        class="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-[#49b1f5] to-[#3a9de8] text-white text-sm font-semibold shadow-md shadow-[#49b1f5]/30 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300"
+      >
+        <FileText :size="16" />
+        写文章
+      </router-link>
     </div>
 
     <!-- Latest Articles -->

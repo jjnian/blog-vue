@@ -96,7 +96,11 @@ const switchMode = (m: 'login' | 'register') => {
 </script>
 
 <template>
-  <div class="min-h-screen flex items-center justify-center px-4 py-16 relative overflow-hidden">
+  <div class="min-h-screen flex items-center justify-center px-4 py-16 relative overflow-hidden bg-cover bg-fixed bg-center"
+       style="background-image: url('https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80');">
+    <!-- Overlay for better readability -->
+    <div class="absolute inset-0 bg-black/20 backdrop-blur-[2px]"></div>
+
     <!-- Background decoration -->
     <div class="absolute inset-0 pointer-events-none overflow-hidden">
       <div class="absolute -top-40 -right-40 w-96 h-96 bg-[#49b1f5]/10 rounded-full blur-3xl"></div>
